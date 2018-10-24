@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新增课程类型</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+    <script>
+    function checkForm() {
+       var courseTypeName=$("#courseTypeName").val().trim();
+       if(courseTypeName==""){
+    	   alert("课程类型名称不能为空！");
+    	   return false;
+       }else return true;
+    }
+    </script>
+</head>
+<body style="padding:8px;">
+    <h3 class="title">新增课程类型</h3>
+    <form th:action="@{/courseType/create}" method="post" th:object="${courseType}" onSubmit="return checkForm();">
+        <div>
+            <span>课程类型名称:</span>
+            <input type="text" name="typeName" placeholder="课程类型名称" id="courseTypeName">
+        </div>
+        <div>
+            <input type="submit" value=" 确定 "/>
+        </div>
+    </form>
+</body>
+</html>

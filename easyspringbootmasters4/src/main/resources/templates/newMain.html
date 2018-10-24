@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<title>主页</title>
+		<link rel="stylesheet" type="text/css" th:href="@{/css/mainCSS.css}" />
+		<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+		<script  th:inline="javascript">
+			//预览上传图片
+		    $(function() {
+		        $("#userpic").change(function (e) {
+		            for (var i = 0; i < e.target.files.length; i++) {
+		                var file = e.target.files.item(i);
+		                var freader = new FileReader();
+		                freader.readAsDataURL(file);
+		                freader.onload = function (e) {
+		                    var src = e.target.result;
+		                    $("#pic").attr("src", src);
+		                }
+		            }
+		        });
+		    });
+			//ajaxUserUpdater
+			function ajaxUserUpdater(){
+				var up=[[${user.userPwd}]];
+				var formData=new FormData($("#userUpdate")[0]);
+				var userName=$("#userName").val().trim();
+				var userPwded=$("#userPwded").val();
+				var userPwd=$("#userPwd").val();
+				var userPwdCheck=$("#userPwdCheck").val();
+				if(userName==""){
+					alert("用户名不能为空");
+					return;
+				}
+				if(userPwded!=up){
+					alert("原密码不正确");
+					return;
+				}
+				if(userPwd==""||userPwd.length<6||userPwd.length>16){
+					alert("新密码不能为空,且长度为6-15");
+					return;
+				}
+				if(userPwd!=userPwdCheck){
+					alert("密码不一致");
+					return;
+				}
+		        $.ajax({
+		            url: /*[[@{/security/update}]]*/,
+		            type: 'post',
+		            data: formData,
+		            cache: false,
+		            async: false,
+		            processData : false,  //必须false才会避开jQuery对 formdata 的默认处理
+		            contentType : false,  //必须false才会自动加上正确的Content-Type
+		            success: function(data){
+						var key="success"
+						if(data[key]){
+							alert("修改成功")
+							window.location.href=/*[[@{/security/toLogin/success}]]*/
+						}else{
+							key="fail"
+							alert(data[key]);
+						}
+		            },
+		        	error: function(data){
+		        		alert("操作失败，可能是数据格式不正确:(");
+		        	},
+		        });
+				
+			}
+			
+			//fun伸缩功能
+			$(function(){
+				$(".functionDirection").click(function(){	
+					$(this).parent(".function").siblings(".function").removeClass("cilck").removeClass("active")
+					$(this).parent(".function").siblings(".function").children(".moreFun").slideUp()
+					$(this).parent(".function").toggleClass("cilck").toggleClass("active")
+					$(this).parent(".function").children(".moreFun").slideToggle(500)
+				})
+			    $(".userExit").click(function () {
+			        if(confirm('您真的要离开系统吗？')){
+			            $(location).attr("href",this.href());
+			        }
+			        return false;
+			    });
+				
+			})
+			//user功能
+			$(function(){
+				$(".userCenter").click(function(){
+					$(".user").toggleClass("changeUser")
+					$(".closeUserSetting").toggleClass("none")
+					$("#userFunction").toggleClass("none")
+				})
+				$(".closeUserSetting").click(function(){
+					$(".user").toggleClass("changeUser")
+					$(".closeUserSetting").toggleClass("none")
+					$("#userFunction").toggleClass("none")
+				})
+			})
+		</script>
+		<style>
+			.none{
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="mainHeaderBox">
+			
+		</div>		
+		<div class="mainAsideBox">
+			<div class="user">
+			
+				<img class="userPicture"  th:src="${user.userPic} ? @{/security/getPic/{userNo}(userNo=${user.userNo})} : @{/pics/cat.jpg}"></img>
+				<div class="userDirection">
+					 &nbsp权限：[[${user.role.roleName}]]<br/>
+					 用户名：[[${user.userName}]]
+				</div>
+				<div id="userFunction">
+					<img class="userCenter" title="用户中心" th:src="@{/pics/user.png}"/>
+					<a th:href="@{/security/logout}" title="点击离开系统" id="logout"><img class="userExit" title="退出登录"  th:src="@{/pics/exit.png}"/></a>
+				</div>
+				<img class="closeUserSetting none" th:src="@{/pics/close.png}"></img>
+				<div class="userSetting">
+					<img th:src="${user.userPic} ? @{/security/getPic/{userNo}(userNo=${user.userNo})} : @{/pics/cat.jpg}" id="pic" style="right:0;height:100px;width:100px;position:absolute;">
+					<form  id="userUpdate" method="post"  enctype="multipart/form-data" th:object="${user}">
+						<input type="hidden" name="userNo" th:value="*{userNo}" />
+					    <div>
+					        <span>学工号: [[${user.userNo}]]</span>
+					    </div>
+					    <div>
+					    	<span>用户名</span>
+					    	<input type="text" name="userName"  id="userName" maxlength="10">
+					    </div>
+					    <div>
+					    	<span>修改头像</span>
+       					 <input id="userpic" type="file" name="userpic" />
+					    </div>
+					    <div>
+					    	<span>原 密 码</span>
+					    	<input type="password" id="userPwded" name="userPwded">
+					    </div>
+					    <div>
+					    	<span>新 密 码</span>
+					    	<input type="password" id="userPwd" name="userPwd">
+					    </div>
+					    <div>
+					    	<span>确认密码</span>
+					    	<input type="password" id="userPwdCheck" name="userPwdCheck">
+					    </div>
+					    <input class="updateButton" type="button" value="修 改" onclick="ajaxUserUpdater()">					    						
+					</form>
+					
+				</div>
+			</div>
+			<div class="fun">
+				<img class="functionHP" th:src="@{/pics/function.png}"/><p class="functionHead">功能</p>
+				<ul>
+					<li class="function">
+						<div class="functionDirection">
+							<p>课程类型</p><img th:src="@{/pics/funArrow.png}"/>
+						</div>						
+						<ul class="moreFun">
+							<li>								
+								<a th:href="@{/courseType/toInput}" target="secIframe">
+									<p>新增课程类型</p>
+								</a>
+							</li>
+							<li>
+								<a th:href="@{/courseType/list}" target="secIframe">
+									<p>课程类型管理</p>
+								</a>
+							</li>
+						</ul>
+					</li>
+					<li class="function">
+						<div class="functionDirection">
+							<p>课 程 </p><img th:src="@{/pics/funArrow.png}"/>
+						</div>							
+						<ul class="moreFun">
+							<li>								
+								<a th:href="@{/course/toInput}" target="secIframe">
+									<p>新增课程</p>
+								</a>
+							</li>
+							<li>
+								<a th:href="@{/course/list}" target="secIframe">
+									<p>课程管理</p>
+								</a>
+							</li>
+						</ul>
+					</li>
+					<li class="function">
+						<div class="functionDirection">
+							<p>小游戏</p><img th:src="@{/pics/funArrow.png}"/>
+						</div>		
+						<ul class="moreFun">
+							<li>
+								<a th:href="@{/security/toPlay}" target="secIframe">
+									<p>打地鼠</p>
+								</a>
+							</li>
+							<li><p>fun6</p></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="mainTextBoxBackground">
+			<iframe id="secIframe" name="secIframe" frameborder="0" allowtransparency="yes"  th:src="@{/welcome.html}"></iframe>
+		</div>
+	</body>
+</html>

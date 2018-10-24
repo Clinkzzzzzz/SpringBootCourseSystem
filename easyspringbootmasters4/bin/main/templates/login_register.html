@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8" />
+		<title>登录页面</title>
+    	<link rel="stylesheet" type="text/css" th:href="@{/css/login_register.css}" />
+		<script type="text/javascript" th:src="@{/js/login_register.js}"></script>
+		<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+		<style th:inline="css">
+			.falseness{
+				border:2px solid red
+			}
+			.defaultS{
+				display: none;
+			}
+			/* *{
+				cursor: url([[@{/pics/mouse.png}]]),pointer;
+			}*/
+		</style>
+		<!--jQ脚本-->
+		<script th:inline="javascript">
+		
+        function ajaxLoginSubmit(){
+            var userNo = $("#LGuserNo").val().trim();
+            var userPwd = $("#LGuserPwd").val().trim();
+
+            $.ajax({
+                url: /*[[@{/security/login}]]*/,
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({"userNo" : userNo,"userPwd" : userPwd}),
+                //async: true,
+                success: function(data){
+					var key="success"
+					if(data[key]){
+						window.location.href=/*[[@{/security/toLogin/success}]]*/
+					}else{
+						key="fail"
+						alert(data[key]);
+					}
+                },
+            	error: function(data){
+            		alert("连接失败拉。。。。:(");
+            	},
+            });
+        }
+        
+        function ajaxSignSubmit(){
+            var userNo = $("#SIGNuserNo").val().trim();
+            var userName=$("#SIGNuserName").val().trim();
+            var userRoleId=$('#SIGNuserRoleId option:selected').val();
+            var userRoleName=$('#SIGNuserRoleId option:selected').text();
+            var userPwd = $("#SIGNuserPwd").val();
+        	var userPwd2 = $("#SIGNuserPwdSure").val();
+        	if(userPwd!=userPwd2){
+        		alert("密码与确认密码不一致");
+        		return;
+        	}
+        	if(userPwd.length<6||userPwd.length>16){
+        		alert("密码长度不符合,长度为6-15");
+        		return;
+        	}
+            $.ajax({
+                url: /*[[@{/security/signup}]]*/,
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({"userNo" : userNo,"userName" : userName,"role" : {"roleId" : userRoleId,"roleName" : userRoleName},"userPwd" : userPwd,"maxScore" : "0"}),
+                //async: true,
+                success: function(data){
+					var key="SignUpSuccess"
+					if(data[key]){
+						alert(data[key])
+						window.location.href=/*[[@{/security/toLogin}]]*/
+					}else{
+						key="SignUpError"
+						alert(data[key]);
+					}
+                },
+            	error: function(data){
+            		alert("连接失败拉。。。。:(");
+            	},
+            });
+        }
+		
+			//隐藏index的方法
+			function hideIndex(){
+				$("#Iframe").attr("src",/*[[@{/security/success}]]*/);
+				$(".index").slideUp(1000);
+			}
+			//boxHeader功能
+			$(function(){
+				$("#signBox").hide();
+				$("#login").addClass("loginBoxHeaderClick")
+				$("#sign").click(function(){
+					$("#loginBox").slideUp(1000)
+					$("#login").removeClass("loginBoxHeaderClick")
+					$("#signBox").slideDown(1000)
+					$("#sign").addClass("loginBoxHeaderClick")
+				})
+				$("#login").click(function(){
+					$("#signBox").slideUp(1000);
+					$("#sign").removeClass("loginBoxHeaderClick")
+					$("#loginBox").slideDown(1000)
+					$("#login").addClass("loginBoxHeaderClick")
+				})
+			})
+			//waring和确认功能string
+			var waringS1="<div class='waring'><div class='arrow top'></div><div class='direction'><p>"
+			var waringS2="</p></div><div class='arrow down'></div></div>"			
+			//确认密码功能
+			$(function(){
+				$("#SIGNuserPwdSure").keyup(function(){
+					if($("#SIGNuserPwd").val()!=$("#SIGNuserPwdSure").val())
+				    {
+				    	$("#SIGNuserPwdSure").addClass("falseness")
+				    	$(".PWDsure").text("密码不一致")
+						var inputS=$(this).parent(".inputBox").children(".defaultS").text()
+						$(this).parent(".inputBox").children("label").before(waringS1+inputS+waringS2)
+				    }
+				    else
+				    {
+				    	$("#SIGNuserPwdSure").removeClass("falseness")
+				    	$(".PWDsure").text("")
+				    	$(".waring").remove()
+				    }
+				})				
+			})
+			//waring功能
+			$(function(){
+				$(".input").focusin(function(){
+					var inputS=$(this).parent(".inputBox").children(".defaultS").text()
+					var waringS=waringS1+inputS+waringS2
+					if(inputS!=null&&inputS!=""){
+						var thisC=$(this).parent(".inputBox").children("label")
+						thisC.before(waringS)
+						$(this).focusout(function(){
+							$(".waring").remove()
+						})
+					}					
+				})
+			})
+			//密码位数确认
+			$(function(){
+				$("#SIGNuserPwd").keyup(function(){
+					if((this).val().length<6) $(this).addClass("falseness")
+					else $(this).removeClass("falseness")
+				})
+			})
+		</script>
+		<style title="waring">
+			.waring{
+				display: block;
+				position:relative;
+				left: -20px;
+				height: 0px;
+				width: 0px;
+			}
+			.top{
+				border-color:transparent   transparent #f60 #f60; 
+				border-width: 10px;		
+				left: 7px;	
+			}
+			.down{
+				border-color: transparent   transparent #fff #fff;
+				border-width: 7px;	
+				top: 4px;
+				left: 9px;
+			}
+			.direction{
+				width: 100px;
+				background: white;
+				padding: 5px;
+				position: absolute;
+				left: -100px;
+				border: 2px solid #f60;
+				border-radius: 10px;
+			}
+			.direction p{
+				
+				font-size: 14px;
+			}
+			.arrow {
+				position: absolute ;			
+				width:0px;
+				height:0px;
+				font-size:0;
+				border-style:solid;				      
+			}
+			select{
+				display:static;
+				padding:5px;
+				position:relative;
+			}
+		</style>
+		<title>登录-注册</title>
+	</head>
+	<body>
+		<iframe id="Iframe" name="Iframe" ></iframe>
+		<div class="index">
+			<div class="header main">
+			<div class="headerText"><h1>课程管理系统</h1></div>
+			</div>
+			<div class="loginBackground" th:style="'background:url(' + @{/pics/mainBackground.jpg} + ');'+
+													'background-repeat: no-repeat;'+
+													'background-size: cover;'+
+													'background-position: center;'">
+				<div class="loginBoxMargin">
+					<div class="boxHeader" style="text-align: center;">
+						<div class="loginBoxHeader" id="login"><h2>用户登录</h2></div>
+						<div class="loginBoxHeader" id="sign" ><h2>用户注册</h2></div>
+					</div>
+					
+					<div id="loginBox" class="table">
+						<!-- <form th:action="@{/security/login}" method="post" th:object="${user}" id="loginForm"  onsubmit="return false"> -->
+							<div class="loginBoxText loginBoxTextSetting">
+								<div class="inputBox">
+									<p class="defaultS">输入学工号</p>
+									<label>学工号</label>									
+									<input class="input" type="text" name="userNo" id="LGuserNo" placeholder="请输入学工号" />
+								</div>
+								<div class="inputBox">
+									<p class="defaultS">请输入密码</p>
+									<label>密 码</label>
+									<input class="input" type="password" name="userPwd" id="LGuserPwd" placeholder="请输入密码" />
+								</div>
+							</div>	
+							<input class="loginButton" type="button" value="登  录" onclick="ajaxLoginSubmit()" />
+						<!--</form>  -->					
+					</div>
+					
+					<div id="signBox" class="table">
+						<!--<form th:action="@{/security/signup}" method="post" th:object="${user}">-->
+							<div class="loginBoxText">
+								<div class="inputBox">
+									<label>学工号</label>
+									<input class="input" id="SIGNuserNo" type="text" name="userNo" placeholder="请输入学号" onkeyup="checkFuntion()"/>
+								</div>
+								<div class="inputBox">
+									
+									<label>用户名</label>
+									<input class="input" id="SIGNuserName" type="text" name="userName" placeholder="请输入用户名" maxlength="10"/>
+								</div>
+								<div class="inputBox">
+									<label>类 型</label>
+						            <select name="role.roleId" id="SIGNuserRoleId">
+						                <option th:value="0">=请选择=</option>
+						                <option th:each="list:${roleList}" th:value="${list.roleId}" th:text="${list.roleName}"></option>
+						            </select><br/>
+								</div>
+								<div class="inputBox">
+									<p class="defaultS">请输入至少6位位数密码</p>
+									<label>密码</label>
+									<input class="input" type="password" id="SIGNuserPwd" name="userPwd" placeholder="请输入密码" />
+								</div>
+								<div class="inputBox">
+									<p class="defaultS PWDsure"></p>
+									<label>确认密码</label>
+									<input class="input" type="password" id="SIGNuserPwdSure" name="userPwdSure" placeholder="请确认密码"/>
+								</div>
+								<span id="erro"></span>
+							</div>	
+							<input class="loginButton" type="button" value="注 册" onclick="ajaxSignSubmit()" />
+						<!-- </form> -->				
+					</div>				
+				</div>
+				
+			</div>
+			<div class="footer main">
+				<p class="footerText">测试网页 Version 2.0<br />HTML Design by WDR HZR</p>			
+			</div>
+		</div>		
+	</body>
+</html>

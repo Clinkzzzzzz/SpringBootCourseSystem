@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改课程类型</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+	<script th:inline="javascript">
+	    $(function() {
+	        var courseReqs = [[${course.courseReqs}]]
+	        for (var i = 0; i < courseReqs.length; i++) {
+	            $("#" + courseReqs[i]).attr("checked", true)
+	        }
+	
+	        $('#coursetextbookpic').on('change', function () {
+	            var file = $(this)
+	            var fileObj = file[0];  //获取当前元素
+	            var dataURL;
+	            var windowURL = window.URL;
+	            if (fileObj.files[0]) {//改变coursetextbookpic(input)
+	                dataURL = windowURL.createObjectURL(fileObj.files[0])   //创建一个新的对象URL,该对象URL可以代表某一个指定的File对象或Blob对象.
+	                $('.imgShow').attr('src', dataURL);
+	            }
+	            else {
+	                dataURL = file.val();
+	                console.log(dataURL)
+	                $('.imgShow').style.filter = 'progid:DXImageTransform.Micsoft.AlphaImageLoader(sizingMethod = scale)'
+	                $('.imgShow').filters.item('DXImageTransform.Microsoft.AlphaImageLoader').src = dataURL;
+	            }
+	            $.ajaxFileUpload({
+	                url: "",
+	                fileElementId: "uploadImg",
+	                dataType: "string",
+	                success: function (data) {
+	                    //图片路径
+	                    $('.imgShow').attr("src", data);
+	                }
+	            });
+	        });
+	    });
+	    
+	    function ajaxSubmit(){
+	    	var formData=new FormData($("#courseUpdate")[0]);
+	    	var courseName=$("#courseName").val().trim();
+	    	var courseHours=$("#courseHours").val().trim();
+	    	var coursePoint=$("#coursePoint").val().trim();
+	    	var courseTypeId=$('#courseType option:selected');
+	    	
+	    	if(courseName==""){
+	    		alert("课程名不能为空");
+	    		return;
+	    	}
+	    	if(courseHours==""){
+	    		alert("学时不能为空");
+	    		return;
+	    	}
+	    	if(coursePoint==""){
+	    		alert("学分不能为空");
+	    		return;
+	    	}
+	    	if(courseTypeId==0){
+	    		alert("请选择课程类型");
+	    		return;
+	    	}
+	    	if($("input[name='courseReqs']:checked").length==0){
+	    		alert("至少选择一项选课条件");
+	    		return;
+	    	}
+	    	
+	        $.ajax({
+	            url: /*[[@{/course/update}]]*/,
+	            type: 'post',
+	            data: formData,
+	            cache: false,
+	            async: false,
+	            processData : false,  //必须false才会避开jQuery对 formdata 的默认处理
+	            contentType : false,  //必须false才会自动加上正确的Content-Type
+	            success: function(data){
+					var key="success"
+					if(data[key]){
+						window.location.href=/*[[@{/course/list}]]*/
+					}else{
+						key="fail"
+						alert(data[key]);
+					}
+	            },
+	        	error: function(data){
+	        		alert("操作失败，可能是数据格式不正确:(");
+	        	},
+	        });
+	    }
+	</script>
+</head>
+<body style="padding:8px;">
+<h3 class="title">新增课程</h3>
+<img id="bookPic"
+     alt="默认教材封面"
+     width="300"
+     height="250"
+     class="imgShow"
+     style="float:right" th:src="@{/course/getPic/{courseNo}(courseNo=${course.courseNo})}" /><br/>
+<form  id="courseUpdate" method="post"  enctype="multipart/form-data" th:object="${course}">
+    	<input type="hidden" name="courseNo" th:value="*{courseNo}" />
+    <div>
+        <span>课程编号: [[${courseNo}]]</span>
+    </div>
+    <div>
+        <span>课程名称:</span>
+        <input type="text" name="courseName"   th:value="*{courseName}" id="courseName" >
+    </div>
+    <div>
+        <span>教材封面:</span>
+        <input id="coursetextbookpic" type="file" name="coursetextbookpic" size="40" />
+    </div>
+    <div>
+        <span>课程课时:</span>
+        <input type="text" name="courseHours"   th:value="*{courseHours}" id="courseHours">
+    </div>
+    <div>
+        <span>课程学分:</span>
+        <input type="text" name="coursePoint"   th:value="*{coursePoint}" id="coursePoint">
+    </div>
+    <div>
+        <span>课程类型:</span>
+        <select name="courseType.typeId" th:value="*{courseType.typeId}" id="courseType">
+            <option th:each="list:${courseTypeList}" th:value="${list.typeId}" th:text="${list.typeName}"></option>
+        </select>
+    </div>
+    <div>
+        <span>课程状态:</span>
+        <input type="radio" name="courseStatus" th:value="O" th:checked="${course.courseStatus eq 'O'}">开放公选&nbsp;&nbsp;
+        <input type="radio" name="courseStatus" th:value="Z" th:checked="${course.courseStatus eq 'Z'}">暂不开放&nbsp;&nbsp;
+        <input type="radio" name="courseStatus" th:value="C" th:checked="${course.courseStatus eq 'C'}">停止授课&nbsp;&nbsp;
+    </div>
+    <div>
+        <span>选课条件:</span>
+        <input id="a" type="checkbox" name="courseReqs" value="a" />大三以上
+        <input id="b" type="checkbox" name="courseReqs" value="b" />平均成绩80分
+        <input id="c" type="checkbox" name="courseReqs" value="c" />党员
+        <input id="d" type="checkbox" name="courseReqs" value="d" />未拖欠学费
+    </div>
+    <div>
+        <span>备注说明:</span>
+        <textarea name="courseMemo" rows="6" cols="60">[[${course.courseMemo}]]</textarea>
+    </div>
+
+    <div>
+        <input type="button" value="修改课程" onclick="ajaxSubmit()"/>
+    </div>
+</form>
+</body>
+</html>

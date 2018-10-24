@@ -1,0 +1,225 @@
+*{
+	margin: 0px;
+	padding: 0px;
+}
+li{
+	display: table;
+	width: 100%;
+}
+a{
+	text-decoration: none;
+}
+a:link{
+	color: inherit;
+}
+a:active{
+	color: inherit;
+}
+a:visited{
+	color: inherit;
+}
+.mainHeaderBox{
+	top: 0px;
+	width: 100%;
+	height: 48px;
+	background-color: #0077ff;
+	border: 1px solid #67f;
+	border-left: 0px;
+	position: fixed;
+	z-index: -1;
+}
+.mainAsideBox{	
+	border-right: 1px solid #555;
+	position: fixed; top:50px; bottom: 0px; left: 0;
+	width: 200px;
+	background-color: #3a3f51;
+	font-family: "Î¢ÈíÑÅºÚ";
+	text-align: center;
+	color: #A6A8B1;
+}
+.mainTextBoxBackground{
+	margin-top: 50px;
+	margin-left: 201px;
+	height: 1000px;
+	background: #EAEAEa;
+}
+.asideBoxMargin{
+	margin-left: 10px;
+	margin-right: 10px;
+}
+.asideLine{
+	margin-top: 10px;
+	margin-bottom: 10px;
+	height: 0px;
+	border: 1px solid #2c2c2c;
+}
+.fun li{
+	cursor: pointer;
+	list-style: none;
+	height: 41px;
+	transition: background-color .5s,height 1s;
+}
+.fun li p{
+	padding: 10px;
+}
+.function p:hover{
+	background-color: #2c2c2c !important;
+}
+.moreFun{
+	display: none;
+}
+.functionHead{
+	font-size: 13px;
+	color: #a6a8b1;
+	padding: 2px 0 5px;
+}
+.cilck{
+	background-color: #111 !important;
+}
+.imgShadow{
+	display: block;
+	height: 0;
+	position: relative;
+	z-index: -1;
+	top: -5px;
+	left: -5px;
+}
+#secIframe{
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+.functionDirection{
+	position: relative;
+	height:41px;
+}
+.functionDirection p{
+	position: relative;
+}
+.functionDirection img{
+	font-size: 10px;
+	position: absolute;
+	-webkit-transition: -webkit-transform 0.5s ease-out;
+	transition:transform 0.5s ease-out;
+	-webkit-transform: rotate(0deg);
+	transform: rotate(0deg);
+	
+	right: 5px;
+	top:12px;
+}
+.function.active .functionDirection img{
+	-webkit-transform: rotate(-90deg);
+}
+.headerBoxText{
+	font-size:27px ;
+	font-family: "Î¢ÈíÑÅºÚ";
+	color: white;
+	font-weight: bolder;
+	padding: 5px 0 0 10px;
+}
+.function p{	
+	transition: background-color .4s;
+}
+.functionHead{
+	margin-top: 10px;
+	text-align: left;
+	padding-left: 40px;	
+	color: #eee
+}
+.functionHP{
+	position: absolute;
+	left: 20px;
+}
+.user{
+	background-color: inherit;
+	width: 180px;
+	height: 230px;
+	padding:10px;
+	border-bottom: 2px solid #2c2c2c;
+	transition-property:height,width,border-width,background-color;	
+	transition-duration: 1s;
+	box-sizing: ;
+	overflow: hidden;	
+}
+
+.userPicture{
+	display: inline-block;
+	width: 100px;
+	height: 100px;
+	margin: 30px 0 25px 0;
+	border-radius: 50px; box-shadow: 0 0 10px #eee;
+	background-size: cover;
+	text-align: initial;
+}
+.userDirection{
+	padding: 2px;
+	height: 40px;
+}
+#userFunction{	
+	padding: 3px 5px 0 5px;
+	height: 27px; width: 170px;
+	background-color: ;
+}
+.userCenter{
+	cursor: pointer;
+	display: inline-block;
+	float: left;
+}
+.userExit{
+	cursor: pointer;
+	display: inline-block;
+	float: right;
+}
+.changeUser{
+	border:2px solid #2c2c2c ;
+	background-color:#292d40;
+	height: 500px;
+	width: 500px;
+	position: fixed;
+	animation: move1 1s;
+	-webkit-animation:move1 1s;
+	animation:move1 1s;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%,-50%);
+	transform: translate(-50%,-50%);
+}
+.changeUserBody{
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	background: rgba(200,200,200,.5);
+}
+@keyframes move1{
+	from{left:0;top: 50px;-webkit-transform: translate(50%,0);}
+	to{left:50%;top: 50%;-webkit-transform: translate(-50%,-50%);}
+}
+.userSetting{
+	position: relative;
+	bottom: -12px;
+	width: 100%;
+	height: 200px;
+	background: white;
+	text-align: left;
+}
+.closeUserSetting{
+	cursor: pointer;
+	position: absolute;
+	right: 0;
+	top: 0;
+	height: 24px;width: 24px;
+	color: red;
+}
+
+#userUpdate span{
+	width: 100px;
+	display:inline-block;
+	text-align:right;
+}
+.updateButton{
+	-webkit-transform:scale(2,2);
+	transform:scale(2,2);
+	position:absolute;
+	right:20px;
+	bottom:20px;
+}

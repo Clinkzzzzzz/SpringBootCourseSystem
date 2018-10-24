@@ -1,0 +1,72 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.2.RELEASE'
+    }
+    repositories {
+        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'war'
+
+group = 'com.ray'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
+}
+
+
+dependencies {
+
+    compile ('org.springframework.boot:spring-boot-starter-web')
+
+    compile ('org.springframework.boot:spring-boot-starter-log4j2')
+
+    compile ('org.springframework.boot:spring-boot-devtools')
+
+    compile ('org.springframework.boot:spring-boot-starter-aop')
+
+    compile ('org.springframework:spring-context-support')
+
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    
+    //compile("org.springframework.boot:spring-boot-starter-security")
+
+    compile ('com.github.pagehelper:pagehelper-spring-boot-starter:1.2.5')
+
+    compile ('tk.mybatis:mapper-spring-boot-starter:2.0.2')
+
+    compile ('com.alibaba:druid-spring-boot-starter:1.1.10')
+
+    compile ('org.apache.commons:commons-lang3:3.7')
+
+    compile ('mysql:mysql-connector-java:8.0.11')
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    
+   // testCompile("org.springframework.security:spring-security-test")
+    
+	compile("org.springframework.boot:spring-boot-starter-web")
+	
+    providedCompile("org.springframework.boot:spring-boot-starter-tomcat")
+
+}
+
+configurations {
+    providedRuntime
+    // remove default logger
+    all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+}

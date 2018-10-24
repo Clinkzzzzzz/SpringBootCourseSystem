@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 配置命名空间 -->
+<mapper namespace="com.ray.mapper.UserMapper"> 
+<!-- sql片段 -->
+	<sql id="uols">user_no,
+		user_name,
+		role_id,
+		user_pwd,
+		max_score,
+		user_pic
+	</sql>
+	
+	<resultMap type="com.ray.entity.User" id="userRM">
+	<!-- 主键 -->
+	<id property="userNo" column="user_no"/>
+	<!-- 普通 -->
+	<result property="userName" column="user_name"/>
+	<result property="userPwd"  column="user_pwd"/>
+	<result property="maxScore" column="max_score"/>
+	<result property="userPic" column="user_pic"/>
+	<!-- 对象映射 -->
+	<association property="role" javaType="com.ray.entity.Role">
+		<!-- 主键 -->
+		<id property="roleId" column="role_id"/>
+		<result property="roleName" column="role_name"/>
+	</association>
+	</resultMap>
+	
+	<!-- 增 -->
+	<insert id="addUser" parameterType="com.ray.entity.User">
+        insert into tbl_users
+        (<include refid="uols"/>)
+        values
+        (#{userNo},#{userName},#{role.roleId},#{userPwd},#{maxScore},#{userPic,jdbcType=BLOB})
+    </insert>
+    
+    <!-- 删1 -->
+    <delete id="removeUserByNo" parameterType="string">
+        delete from tbl_users
+        where user_no = #{userNo}
+    </delete>
+    <!-- 删2 -->
+    <delete id="removeUserByRoleId" parameterType="int">
+        delete from tbl_users
+        where role_id = #{roleId}
+    </delete>
+    
+    <!--改 -->
+    <update id="updateUser" parameterType="com.ray.entity.User" >
+        update tbl_users
+        <set>
+            <if test="userName!=null">user_name=#{userName},</if>
+            <if test="userPwd!=null">user_pwd=#{userPwd},</if>
+            <if test="maxScore!=null">max_score=#{maxScore,jdbcType=INTEGER},</if>
+            <if test="userPic!=null">user_pic=#{userPic,jdbcType=BLOB},</if>
+        </set>
+        where user_no = #{userNo}
+    </update>
+    
+    <!-- 查 -->
+    <select id="loadUserByNo" parameterType="string" resultType="com.ray.entity.User" resultMap="userRM">
+        select
+		p.user_no,p.user_name,p.user_pwd,p.max_Score,p.user_pic,b.role_id,b.role_name
+        from tbl_users p
+        left join tbl_users_role b
+        on p.role_id=b.role_id
+        where p.user_no= #{userNo}
+    </select>
+    
+    <!-- 根据roleId查询 -->
+    <select id="loadUserByRoleId" parameterType="int" resultType="string">
+        select user_no from tbl_users
+        where role_id= #{roleId}
+    </select>
+    
+    <!-- 根据游戏排名选出前几名 -->
+    <select id="loadUserByGameRank" parameterType="int" resultMap="userRM">
+    select * from tbl_users
+    order by max_score DESC
+    limit #{rank}
+    </select>
+</mapper>
