@@ -2,7 +2,11 @@ package com.ray.controller;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.ray.entity.Comment;
 import com.ray.entity.Course;
+import com.ray.entity.User;
+import com.ray.service.CommentService;
+import com.ray.service.CommentTypeService;
 import com.ray.service.CourseService;
 import com.ray.service.CourseTypeService;
 import com.ray.utils.CourseQueryHelper;
@@ -15,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
@@ -37,12 +43,18 @@ public class CourseController {
     @Autowired
     private CourseTypeService courseTypeService ;
 
+    @Autowired
+    private CommentService commentService;
+    
+    @Autowired
+    private CommentTypeService commentTypeService;
+    
     @ModelAttribute
     public void getCourse(@RequestParam(value="courseNo",required=false) String courseNo,
                           Map<String, Object> map,Course course){
-
         course=courseService.loadCourseByNo(courseNo);
         if(courseNo != null&&course!= null){
+        	
             map.put("course", course);
         }
     }
@@ -63,8 +75,16 @@ public class CourseController {
 
     @PostMapping(value="/create")
     @ResponseBody
-    public Map<String, Object> create(@RequestParam("coursetextbookpic") MultipartFile file, Course course, Map<String, Object> map) throws Exception{
+    public Map<String, Object> create(@RequestParam("coursetextbookpic") MultipartFile file, Course course, Map<String, Object> map,HttpSession session) throws Exception{
     	Map<String, Object> Errormap =new HashMap<>();
+    	
+    	User user=(User)session.getAttribute("user");
+    	if(user==null) {
+    		Errormap.put("fail", "你没有足够的权限");
+    		return Errormap;
+    	}
+    	course.setUser(user);
+    	
         //读取文件数据，转换成数组
         if(file!=null){
         	System.out.println(file.getSize());
@@ -76,6 +96,10 @@ public class CourseController {
         }
 
         try{
+            if(course.getCourseNo().trim().equals("")||course.getCourseName().trim().equals("")) {
+            	Errormap.put("fail", "非法输入！");
+            	return Errormap;
+            }
             courseService.addCourse(course);
         }catch(Exception e){
             map.put("exceptionMessage", e.getMessage());
@@ -87,28 +111,31 @@ public class CourseController {
         Errormap.put("success", "添加成功!");
         return Errormap;
     }
+    
+
+
 
     @RequestMapping("/list")
     public String list(@RequestParam(value="pageNo", required=false, defaultValue="1") String pageNoStr,
                        Map<String, Object> map, CourseQueryHelper helper) {
 
         int pageNo = 1;
-
-        //�? pageNo 的校�?
         pageNo = Integer.parseInt(pageNoStr);
         if(pageNo < 1){
             pageNo = 1;
         }
-
         PageHelper.startPage(pageNo, 5);
         List<Course> courselist = courseService.loadScopedCourses(helper);
         PageInfo<Course> page=new PageInfo<Course>(courselist);
-
+        
+        List<Comment> commentList=commentService.loadAllComment();
+        map.put("commentList", commentList);
+        map.put("commentType", commentTypeService.loadAll());
         map.put("courseTypeList", courseTypeService.loadAll());
         map.put("page", page);
         map.put("helper", helper);
-
-        return "course/list_course";
+        
+        return "course/list_course2";
 
     }
 
@@ -132,7 +159,7 @@ public class CourseController {
         return "course/update_course";
 
     }
-
+    
     @PostMapping(value="/update")
     @ResponseBody
     public Map<String, Object> update(@RequestParam("coursetextbookpic") MultipartFile file, Course course, Map<String, Object> map) throws Exception{
@@ -145,7 +172,12 @@ public class CourseController {
         	}
             course.setCourseTextbookPic(file.getBytes());
         }
-
+        
+        if(course.getCourseNo().trim().equals("")||course.getCourseName().trim().equals("")) {
+        	Errormap.put("fail", "非法输入！");
+        	return Errormap;
+        }
+        
         try{
             courseService.updateCourse(course);
         }catch(Exception e){
@@ -184,6 +216,30 @@ public class CourseController {
         return null;
 
     }
-
+    
+    @RequestMapping("/getTypeCnt")
+    @ResponseBody
+    public List<Map<String, Object> >getTypeCnt(){
+    	return courseService.loadCountByType();
+    }
+    
+    @RequestMapping("/toReport")
+    public String toReport() {
+    	return "course/report1";
+    }
+    
+    @RequestMapping(value="/getCourse/{courseNo}")
+    @ResponseBody
+    public Map<String, Object>getCourse(@PathVariable("courseNo")String courseNo){
+    	Map<String, Object> msgMap=new HashMap<>();
+    	try {
+			msgMap.put("course", courseService.loadCourseByNo(courseNo));
+			msgMap.put("success", "查询课程成功");
+		} catch (Exception e) {
+			msgMap.put("fail", e);
+			System.out.println(e);
+		}
+    	return msgMap;
+    }
 
 }

@@ -43,7 +43,11 @@ dependencies {
 
     compile('org.springframework.boot:spring-boot-starter-thymeleaf')
     
-    //compile("org.springframework.boot:spring-boot-starter-security")
+    compile("org.springframework.boot:spring-boot-starter-security")
+    
+    compile("org.jsoup:jsoup:1.9.2")
+    
+    compile ('com.google.guava:guava:19.0')
 
     compile ('com.github.pagehelper:pagehelper-spring-boot-starter:1.2.5')
 
@@ -57,7 +61,7 @@ dependencies {
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     
-   // testCompile("org.springframework.security:spring-security-test")
+   	testCompile("org.springframework.security:spring-security-test")
     
 	compile("org.springframework.boot:spring-boot-starter-web")
 	

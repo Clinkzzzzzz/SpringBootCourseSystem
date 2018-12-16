@@ -40,6 +40,11 @@
 	    });
 	    
 	    function ajaxSubmit(){
+	    	var roleid=[[${session.user.role.roleId}]];
+	    	if(roleid==3){
+	    		alert("你没有足够的权限");
+	    		return;
+	    	}
 	    	var formData=new FormData($("#courseUpdate")[0]);
 	    	var courseName=$("#courseName").val().trim();
 	    	var courseHours=$("#courseHours").val().trim();
@@ -66,6 +71,14 @@
 	    		alert("至少选择一项选课条件");
 	    		return;
 	    	}
+	    	if(!isPInt(courseHours)){
+	    		alert("学时只能为正整数");
+	    		return;
+	    	}
+	    	if(!isZ(coursePoint)){
+	    		alert("学分只能为正数");
+	    		return;
+	    	}
 	    	
 	        $.ajax({
 	            url: /*[[@{/course/update}]]*/,
@@ -89,6 +102,19 @@
 	        	},
 	        });
 	    }
+	    
+	    function isPInt(str) {
+	        var g = /^[1-9]*[1-9][0-9]*$/;
+	        ///^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/
+	        return g.test(str);
+	    }
+	    
+	    function isZ(str) {
+	        var g = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;
+	        //
+	        return g.test(str);
+	    }
+	    
 	</script>
 </head>
 <body style="padding:8px;">
@@ -98,7 +124,7 @@
      width="300"
      height="250"
      class="imgShow"
-     style="float:right" th:src="@{/course/getPic/{courseNo}(courseNo=${course.courseNo})}" /><br/>
+     style="float:right" th:src="${course.courseTextbookPic.length} >0 ? @{/course/getPic/{courseNo}(courseNo=${course.courseNo})} : @{/pics/please.jpg}" /><br/>
 <form  id="courseUpdate" method="post"  enctype="multipart/form-data" th:object="${course}">
     	<input type="hidden" name="courseNo" th:value="*{courseNo}" />
     <div>
@@ -106,7 +132,7 @@
     </div>
     <div>
         <span>课程名称:</span>
-        <input type="text" name="courseName"   th:value="*{courseName}" id="courseName" >
+        <input type="text" name="courseName"   th:value="*{courseName}" id="courseName"  maxlength="20">
     </div>
     <div>
         <span>教材封面:</span>
@@ -114,11 +140,11 @@
     </div>
     <div>
         <span>课程课时:</span>
-        <input type="text" name="courseHours"   th:value="*{courseHours}" id="courseHours">
+        <input type="text" name="courseHours"   th:value="*{courseHours}" id="courseHours" maxlength="10">
     </div>
     <div>
         <span>课程学分:</span>
-        <input type="text" name="coursePoint"   th:value="*{coursePoint}" id="coursePoint">
+        <input type="text" name="coursePoint"   th:value="*{coursePoint}" id="coursePoint" maxlength="10">
     </div>
     <div>
         <span>课程类型:</span>

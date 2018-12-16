@@ -56,6 +56,7 @@
             <if test="userPwd!=null">user_pwd=#{userPwd},</if>
             <if test="maxScore!=null">max_score=#{maxScore,jdbcType=INTEGER},</if>
             <if test="userPic!=null">user_pic=#{userPic,jdbcType=BLOB},</if>
+            <if test="role!=null">role_id=#{role.roleId}</if>
         </set>
         where user_no = #{userNo}
     </update>
@@ -82,4 +83,13 @@
     order by max_score DESC
     limit #{rank}
     </select>
+    
+    <select id="loadAllUser" resultMap="userRM">
+    	select * 
+    	from tbl_users a
+    	left join tbl_users_role b
+    	on a.role_id=b.role_id
+    	order by user_no ASC
+    </select>
+    
 </mapper>

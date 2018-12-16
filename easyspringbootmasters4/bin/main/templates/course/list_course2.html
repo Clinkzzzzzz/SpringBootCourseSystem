@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>课程类型管理</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/list_course.css}" />
+    <script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+    	.none{
+    		display: none;
+    	}
+    </style>
+	<script th:inline="javascript">
+	
+    $(function() {
+        //删除操作
+        $(".delete").click(function () {
+            var href = $(this).attr("href");
+            if (confirm("确定要删除吗?")) {
+                $("form:eq(0)").attr("action", href).submit();
+                return false;
+            }
+
+        });
+
+        $(".update").click(function () {
+            var href = $(this).attr("href");
+            $(location).attr("href", href);
+        });
+        
+		$(".closeSelectDialog").click(function(){
+			 $('.selectDialog').fadeOut(100);
+		});
+		
+        //分页操作
+        $(".linkspan").click(function () {
+
+            var pageNo = [[${page.pageNum}]];
+            var totalPageNum = [[${page.pages}]];
+            var re = /^[0-9]+.?[0-9]*$/;
+
+            if (String($(this).attr("id")) == String("one"))
+                pageNo = 1;
+
+            if (String($(this).attr("id")) == String("two"))
+                pageNo = pageNo - 1;
+
+            if (String($(this).attr("id")) == String("three"))
+                pageNo = pageNo + 1;
+
+            if (String($(this).attr("id")) == String("four"))
+                pageNo = totalPageNum;
+
+            if (String($(this).attr("id")) == String("five")) {
+                var num = $.trim($("#pageNo").val());
+
+                if (!re.test(num)) {
+                    alert("输入的不是数字!");
+                    return;
+                }
+                pageNo = parseInt(num);
+                if (pageNo < 1 || pageNo > totalPageNum) {
+                    alert("页号超出范围，有效范围：[1-" + totalPageNum + "]!");
+                    return;
+                }
+
+            }
+
+            var act="?pageNo="+pageNo;
+            $("form:eq(1)").attr("action",act).submit();
+            return false;
+
+        });
+    });
+
+	$(function(){						
+		$(".buttonLabel").click(function(){
+			var x=$(this).offset().left
+			var y=$(this).offset().top
+			var th=$(this).parent(".button")
+			th.css("top",y)
+			th.css("left",x)
+			
+			$(this).parents("tbody").children(".tr").siblings(".tr").children(".td").children(".button").removeClass("changeButton").children(".LC_comment").addClass("none")
+			$(this).parents("tbody").children(".tr").siblings(".tr").children(".td").children(".button").children(".buttonLabel").removeClass("none")
+			
+			setTimeout(function(){
+				th.addClass("changeButton").removeClass("changeButton2")
+			},100)						
+			setTimeout(function(){
+				th.children(".LC_comment").removeClass("none")
+				th.children(".buttonLabel").addClass("none")
+			},1000)
+		})
+		$(".LC_comment_close").click(function(){
+			
+			var th=$(this).parent(".LC_comment")
+			th.parent(".button").addClass("changeButton2")
+			th.addClass("none")
+			th.parent(".button").children('.buttonLabel').removeClass("none")
+			setTimeout(function(){
+				th.parent(".button").removeClass("changeButton").removeClass("changeButton2")
+			},1000)			
+		})
+		
+	})
+	function ajaxCommentSubmit(index,course){
+		var content=$("#content"+index).val().trim();
+		var commentTypeId=$('#commentType'+index+' option:selected').val();
+		var commentTypeName=$('#commentType'+index+' option:selected').text();
+		var courseNo=course;
+		if(content==""){
+			alert("评论内容不能为空");
+			return;
+		}
+		if(commentTypeId==0){
+			alert("请选择评论类型");
+			return;
+		}
+		var formData=new FormData();
+		formData.append("content",content);
+		formData.append("commtentTypeId",commentTypeId)
+		formData.append("commentTypeName",commentTypeName)
+		formData.append("courseNo",courseNo)
+		
+		$.ajax({
+			url: /*[[@{/comment/addComment}]]*/,
+			type: 'post',
+				    data: formData,
+		            cache: false,
+		            async: false,
+		            processData : false,  //必须false才会避开jQuery对 formdata 的默认处理
+		            contentType : false,
+		            
+			//datatype: 'json',
+			//contentType: 'application/json',
+			//data: JSON.stringify({"course" : {"courseNo" : courseNo},"content" : content,"commentType" : {"typeId" : commentTypeId,"TypeName" : commentTypeName}}),
+			//async:false,
+			success: function(data){
+				var key="success";
+				if(data[key]){
+					//刷新div
+					alert(data[key]);
+					$("#commentall"+index).load(window.location.href + (" #LC_comment_allabc"+course));
+					//window.location.reload();
+				}else{
+					key="fail";
+					alert(data[key]);
+				}
+			},
+			error: function(data){
+				alert("连接失败拉。。。。:(");
+			}
+		})
+	};
+	function ajaxCommentDelete(index,course,id){
+        if(confirm('确定删除此条评论吗？？')){
+    		$.ajax({
+    			url: [[@{/comment/remove/}]]+id,
+    			type: 'DELETE',
+    			datatype: 'json',
+    			contentType: 'application/json',
+    			data: JSON.stringify({"commentId" : id}),
+    			async:false,
+    			success: function(data){
+    				$("#commentall"+index).load(window.location.href + (" #LC_comment_allabc"+course));
+    			},
+    			error: function(data){
+    				alert("连接失败拉。。。。:(");
+    			}
+    		})
+        }
+        return false;
+	}
+	
+	function ajaxCourseSelect(id){
+		$.ajax({
+			url: [[@{/course/getCourse/}]]+id,
+			type: 'SELECT',
+			async:false,
+			success: function(data){
+				var key="success";
+				if(data[key]){
+					$('#selectCourseNo').val(data["course"].courseName);
+    				$('#selectCourseName').val(data["course"].courseName);
+    				$("#selectCourseUser").val(data["course"].user.userName);
+    				$("#selectCourseHour").val(data["course"].courseHours);
+    				$("#selectCoursePoint").val(data["course"].coursePoint);
+    				$("#selectCourseType").val(data["course"].courseType.typeName);
+    				if(data["course"].courseStatus=='O'){
+    					$("#selectCourseStatus").val("开放公选");
+    				}else if(data["course"].courseStatus=='Z'){
+    					$("#selectCourseStatus").val("暂不开放");
+    				}else if(data["course"].courseStatus=='C'){
+    					$("#selectCourseStatus").val("停止授课");
+    				}
+    				var str=""
+    				for(var i=0;i<data["course"].courseReqs.length;i++){
+    					if(data["course"].courseReqs[i]=='a')str+="大三以上"
+    					else if(data["course"].courseReqs[i]=='b')str+="平均成绩80分"
+    					else if(data["course"].courseReqs[i]=='c')str+="党员"
+    					else if(data["course"].courseReqs[i]=='d')str+="未拖欠学费"
+    					if(i!=data["course"].courseReqs.length-1)str+=','
+    				}
+    				$("#selectCourseReqs").val(str);
+    				$("#selectCourseMemo").val(data["course"].courseMemo)
+    				if(data["course"].courseTextbookPic.length>0){
+    					$("#selectCourseTextBookPic").attr("src",[[@{/course/getPic/}]]+id)
+    				}else{
+    					$("#selectCourseTextBookPic").attr("src",[[@{/pics/please.jpg}]])
+    				}
+    				
+    				$(".selectDialog").show(200);
+				}else{
+					alert(data["fail"]);
+				}
+			},
+			error: function(data){
+				alert("连接失败拉。。。。:(");
+			}
+		})
+	}
+	</script>
+	
+	<style>
+		.selectDialog label{
+			width: 100px;
+			display:inline-block;
+			text-align:right;
+		}
+	</style>
+	
+</head>
+<body style="padding:8px;">	
+	<h3 class="title">课程管理</h3>
+	<form action="" method="POST">
+	    <input type="hidden" name="_method" value="DELETE"/>
+	</form>
+	<div id="queryArea">
+	    <form th:action="@{/course/list}" method="post" th:object="${helper}">
+	        课程名称：<input class="input" type="text" name="qryCourseName" />&nbsp;&nbsp;
+	        学分范围：<input type="text" name="qryStartPoint" size="6" /> - <input type="text" name="qryEndPoint" size="6" />&nbsp;&nbsp;
+	        课程类型：
+	        <select name="qryCourseType">
+	            <option value="">=请选择=</option>
+	            <option th:each="list:${courseTypeList}" th:value="${list.typeId}" th:text="${list.typeName}"></option>
+	        </select>
+	        <input type="submit" value="查询"/>
+	    </form>
+	</div>
+	
+	
+	<table >
+	    <tr>
+	        <th>序号</th>
+	        <th>课程号</th>
+	        <th>开课人</th>
+	        <th>名称</th>
+	        <th>课时</th>
+	        <th>学分</th>
+	        <th>类型</th>
+	        <th>状态</th>
+	        <th>选课要求</th>
+	        <th>备注</th>
+	        <th>操作</th>
+	    </tr>
+	    <tr class="tr" th:each="course,iterStat : ${page.list}" >
+	        <td th:text="${iterStat.index+1}" nowrap></td>
+	        <td th:text="${course.courseNo}"  nowrap></td>
+	        <td th:text="${course.user.userName}" nowrap></td>
+	        <td nowrap style="padding-top:10px;">
+	            [[${course.courseName}]]<br>
+	            <img width="100" height="50" th:alt="${course.courseName+'的教材'}" th:src="${course.courseTextbookPic.length} >0 ? @{/course/getPic/{courseNo}(courseNo=${course.courseNo})} : @{/pics/please.jpg}"/>
+	        </td>
+	        <td th:text="${course.courseHours}" nowrap></td>
+	        <td th:text="${course.coursePoint}" nowrap></td>
+	        <td th:text="${course.courseType.typeName}" nowrap></td>
+	        <td nowrap>
+	            <span th:if="${course.courseStatus eq 'O'}">开放公选</span>
+	            <span th:if="${course.courseStatus eq 'Z'}">暂不开放</span>
+	            <span th:if="${course.courseStatus eq 'C'}">停止授课</span>
+	        </td>
+	        <td  nowrap style="max-width:150px;overflow:hidden">
+	            <span th:each="req : ${course.courseReqs}" class="td-text">
+	                <font th:if="${req eq 'a'}">大三以上</font>
+	                <font th:if="${req eq 'b'}">平均成绩80分</font>
+	                <font th:if="${req eq 'c'}">党员</font>
+	                <font th:if="${req eq 'd'}">未拖欠学费</font>
+	            </span>
+	        </td>
+	        <td class="td-text" nowrap>
+	        	<p th:title="${course.courseMemo}">[[${course.courseMemo}]]</p>
+	        </td>
+	        <td class="td">
+	        	
+	        	<div class="button ">
+	        		<!-- <label class="buttonLabel ">评论</label> -->
+	        		<div class="buttonLabel ">评论</div>
+	        		<div class="LC_comment none">
+						<img class="LC_comment_close" th:src="@{/pics/close.png}"></img>
+						<p style="font-size: 30px;font-weight: 800;margin: 10px 20px;">评论</p>
+						<div class="LC_comment_all" th:id="commentall+${iterStat.index+1}" >
+						
+							<!--这里添加评论 class为LC_comment_allabc-->
+							<div class="LC_comment_allabc" th:each="comments,cmtStat : ${commentList}" th:if="${comments.course.courseNo eq course.courseNo}" th:id="LC_comment_allabc+${course.courseNo}">
+								<div class="LC_comment_allabc_user">
+									<img  width="50" height="50" class="_pic"  th:src="${comments.user.userPic} ? @{/security/getPic/{userNo}(userNo=${comments.user.userNo})} : @{/pics/cat.jpg}"/>
+									<div class="_name">用户名:[[${comments.user.userName}]]</div>
+								</div>
+								<div class="LC_comment_allabc_func">
+									<div class="_text" th:text="${comments.content}" ></div>
+									<button class="_del btn-danger btn btn-sm"  th:if="${comments.user.userNo eq session.user.userNo||session.user.role.roleId eq 1}" th:onclick="'javascript:ajaxCommentDelete('+${iterStat.index+1}+',\''+${course.courseNo}+'\','+${comments.commentId}+')'">删除</button>
+									<div class="_time" th:text="${#strings.substring(comments.createTime,0,16)}"></div>
+									<div class="_type" th:text="${comments.commentType.TypeName}"></div>
+								</div>
+							</div>
+							
+						</div>
+						<div class="LC_comment_addComent">
+						    <select name="commentType.typeId" th:id="commentType+${iterStat.index+1}">
+						        <option th:value="0">=请选择=</option>
+						        <option th:each="list:${commentType}" th:value="${list.typeId}" th:text="${list.typeName}"></option>
+						    </select>
+							<textarea class="LC_comment_addComentText" th:id="content+${iterStat.index+1}"></textarea>
+							<button class="LC_comment_addComentPost btn btn-primary" th:onclick="'javascript:ajaxCommentSubmit('+${iterStat.index+1}+',\''+${course.courseNo}+'\')'" >发送</button>
+						</div>
+					</div>
+	        	</div>
+	        	
+	            <button class="update btn btn-primary btn-sm" th:href="@{/course/preUpdate/{courseNo}(courseNo=${course.courseNo})}" th:if="${course.user.userNo eq session.user.userNo||session.user.role.roleId eq 1}">修改</button>
+	            <button class="delete btn btn-primary btn-sm" th:href="@{/course/remove/{courseNo}(courseNo=${course.courseNo})}" th:if="${course.user.userNo eq session.user.userNo||session.user.role.roleId eq 1}">删除</button>
+	            <button class="select btn btn-primary btn-sm" th:onclick="'javascript:ajaxCourseSelect(\''+${course.courseNo}+'\');'">查看</button>
+	        </td>
+	    </tr>
+	</table>
+	<div id="pageInfo">
+	    共[[${page.total}]]条,
+	    <span th:if="${ ( page.pageNum - 1 ) * page.pageSize + 1 == page.total }">
+				当前显示第[[${page.total}]]条,
+		</span>
+	    <span th:if="${ ( page.pageNum - 1 ) * page.pageSize + 1 != page.total }">
+				当前显示[[${page.startRow}]]-[[${page.endRow}]]条,
+		</span>
+	    第[[${page.pageNum}]]/[[${page.pages}]]页
+	    |
+	    <a href="#" th:if="${page.pageNum > 1}"><span class="linkspan" id="one">首页</span>&nbsp;</a>
+	    <a href="#" th:if="${page.pageNum > 1}"><span class="linkspan" id="two">上一页</span>&nbsp;</a>
+	    <a href="#" th:if="${page.pageNum < page.pages}"><span class="linkspan" id="three">下一页</span>&nbsp;</a>
+	    <a href="#" th:if="${page.pageNum != page.pages}"><span class="linkspan" id="four">末页</span>&nbsp;</a>
+	    |
+	    到<input type="text" id="pageNo" size=4 style="text-align:right;" onkeypress="onlynumber();"/> 页
+	    <button class="linkspan" id="five" style="color:black;text-decoration:none;"> 跳 转 </button>
+	</div>
+	
+	<div class="selectDialog" style="display:none;position: absolute;top: 5%;left: 30%;border: 1px solid black;background-color: white;padding: 10px;border-radius: 5px;"><!-- 修改角色弹出框 -->
+		<span  class="closeSelectDialog" style="float: right;cursor:pointer;">X</span>
+		<div style="display:inline-block">
+		
+		<h5>详细信息:</h5>
+		<div style="margin-bottom: 10px;"></div>
+		<div class="form-group">
+			<label>课程号：</label><input type="text" id="selectCourseNo" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>课程名：</label><input type="text" id="selectCourseName" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>开课人：</label><input type="text" id="selectCourseUser" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>课时：</label><input type="text" id="selectCourseHour" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>学分：</label><input type="text" id="selectCoursePoint" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>课程类型：</label><input type="text" id="selectCourseType" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>课程状态:</label><input type="text" id="selectCourseStatus" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>选课条件:</label><input type="text" id="selectCourseReqs" readonly="readonly"></input>
+		</div>
+		<div class="form-group">
+			<label>备注：</label><textarea  id="selectCourseMemo" readonly="readonly"></textarea>
+		</div>
+		</div>
+		<div class="pic" style="display:inline-block;vertical-align:top;position:relative;top:20px">
+			<img id="selectCourseTextBookPic" style="float:right;" width="200" height="200">
+		</div>
+	</div>
+</body>
+</html>

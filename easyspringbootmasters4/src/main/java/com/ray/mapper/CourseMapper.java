@@ -68,6 +68,7 @@ public interface CourseMapper {
      */
     List<String> loadCourseByTypeId(Integer typeId);
 
+    List<String> loadCourseByUserNo(String useNo);
 
     /**
      * 获取对应条件课程信息
@@ -77,5 +78,9 @@ public interface CourseMapper {
      *
      */
     List<Course> loadScopedCourses(Map<?, ?> map);
+    
+    List<Map<String, Object>> loadCountByType();
+    
+    boolean removeCourseByUserNo(String userNo);
 
 }

@@ -1,6 +1,7 @@
 package com.ray.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.ray.entity.Course;
 import com.ray.utils.CourseQueryHelper;
@@ -31,6 +32,8 @@ public interface CourseService {
      *
      */
     boolean removeCourseByNo(String courseNo);
+    
+    boolean removeCourseByUserNo(String userNo);
 
     /**
      * 更新课程信息
@@ -66,5 +69,7 @@ public interface CourseService {
      *
      */
     byte[] getTextbookPic(String courseNo);
+    
+    List<Map<String, Object> > loadCountByType();
 
 }

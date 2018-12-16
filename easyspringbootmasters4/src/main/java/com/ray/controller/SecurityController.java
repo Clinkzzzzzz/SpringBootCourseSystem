@@ -3,6 +3,7 @@ package com.ray.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletOutputStream;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.ray.entity.User;
 import com.ray.service.RoleService;
 import com.ray.service.UserService;
@@ -66,12 +69,12 @@ public class SecurityController {
     	String flagMessage="fail";
     	String hintMessage="登录失败";
     	//判空
-    	if(user.getUserNo()=="") {
+    	if(user.getUserNo().equals("")) {
     		hintMessage="请输入学工号";
     		map.put(flagMessage,hintMessage);
     		return map;
     	}
-    	if(user.getUserPwd()=="") {
+    	if(user.getUserPwd().equals("")) {
     		hintMessage="请输入密码";
     		map.put(flagMessage, hintMessage);
     		return map;
@@ -96,8 +99,10 @@ public class SecurityController {
     @RequestMapping("toLogin/success")
     public String logined(HttpSession session,Map<String, Object> map) {
     	map.put("user", (User)session.getAttribute("user"));
+    	//根据user.role.roleId跳转页面
     	return "newMain";
     }
+    
     
     @PostMapping(value="/update")
     @ResponseBody
@@ -181,19 +186,24 @@ public class SecurityController {
     
     @PostMapping(value="/signup")
     @ResponseBody
-    public Map<String, Object> signup(@RequestBody User user,Map<String, Object> map) {
+    public Map<String, Object> signup(Integer roleId,User user) {
     	System.out.println(user.getUserNo());
     	System.out.println(user.getUserName());
-    	//System.out.println(user.getRole().getRoleId());
     	System.out.println(user.getUserPwd());
-    	map.put("roleList", roleService.loadAll());
     	Map<String, Object> ErrorMap=new HashMap<>();
-    	if(user.getUserNo()=="") {
+    	try {
+    		user.setRole(roleService.getRoleById(roleId));
+		} catch (Exception e) {
+			// TODO: handle exception
+			ErrorMap.put("SignUpError", e);
+			return ErrorMap;
+		}
+    	if(user.getUserNo().equals("")) {
     		ErrorMap.put("SignUpError", "学工号不能为空哦");
     		return ErrorMap;
     	}
     	
-    	if(user.getUserName()=="") {
+    	if(user.getUserName().equals("")) {
     		ErrorMap.put("SignUpError", "请输入用户名");
     		return ErrorMap;
     	}
@@ -202,8 +212,13 @@ public class SecurityController {
     		ErrorMap.put("SignUpError", "请选择用户类型");
     		return ErrorMap;
     	}
+    	//不允许注册管理员
+    	if(user.getRole().getRoleId()==1) {
+    		ErrorMap.put("SignUpError", "无法注册管理员");
+    		return ErrorMap;
+    	}
     	
-    	if(user.getUserPwd()=="") {
+    	if(user.getUserPwd().equals("")) {
     		ErrorMap.put("SignUpError", "请输入密码！");
     		return ErrorMap;
     	}
@@ -218,5 +233,83 @@ public class SecurityController {
     		ErrorMap.put("SignUpError", "学工号:"+user.getUserNo()+"已经注册，不能使用此学号");
     		return ErrorMap;
     	}
+    }
+    
+    
+    @GetMapping("/userlist")
+    public String userlist(HttpSession session,Map<String, Object> map,@RequestParam(value="pageNo", required=false, defaultValue="1") String pageNoStr) {
+    	User user=(User) session.getAttribute("user");
+    	if(user.getRole().getRoleId()==1) {
+    		int pageNo=1;
+    		pageNo=Integer.parseInt(pageNoStr);
+    		if(pageNo<1) {
+    			pageNo=1;
+    		}
+    		PageHelper.startPage(pageNo, 5);
+    		List<User> userList=userService.loadAllUser();
+    		PageInfo<User> page=new PageInfo<User>(userList);
+    		map.put("page", page);
+    		map.put("roleList", roleService.loadAll());
+    		return "user/user_list";
+    	}else {
+    		return "error/405";
+    	}
+    }
+    
+	@DeleteMapping(value="/remove/{userNo}")
+	@ResponseBody
+	public Map<String, Object> remove(@PathVariable("userNo")String userNo){
+		Map<String, Object> map =new HashMap<>();
+		userService.removeUser(userNo);
+		map.put("success", "删除成功");
+		return map;
+	}
+	
+	@PostMapping(value="/modify")
+	@ResponseBody
+	public Map<String, Object> modify(@RequestBody User user){
+		Map<String, Object> msgMap=new HashMap<>();
+		try {
+			userService.updateUser(user);
+			msgMap.put("success", "修改用户成功");
+		}catch (Exception e) {
+			msgMap.put("false", e);
+			System.out.println(e);
+		}
+		return msgMap;
+	}
+	
+	@PostMapping("/addUser")
+	@ResponseBody
+	public Map<String, Object> addUser(@RequestBody User user){
+		Map<String, Object> msgMap=new HashMap<>();
+		if(userService.get(user.getUserNo())!=null) {
+			msgMap.put("fail", "该学工号已存在");
+			return msgMap;
+		}
+		try {
+			userService.addUser(user);
+			msgMap.put("success","添加用户成功");
+		} catch (Exception e) {
+			msgMap.put("fail", e);
+			System.out.println(e);
+			// TODO: handle exception
+		}
+		return msgMap;
+	}
+	
+    @RequestMapping(value="/getUser/{userNo}")
+    @ResponseBody
+    public Map<String, Object> getUser(@PathVariable("userNo")String userNo){
+    	Map<String, Object> msgMap=new HashMap<>();
+    	try {
+			msgMap.put("getUser",userService.get(userNo));
+			msgMap.put("success", "查询用户成功");
+		} catch (Exception e) {
+			// TODO: handle exception
+			msgMap.put("fail", e);
+			System.out.println(e);
+		}
+    	return msgMap;
     }
 }

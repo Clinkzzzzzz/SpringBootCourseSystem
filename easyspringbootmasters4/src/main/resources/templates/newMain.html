@@ -127,7 +127,7 @@
 					<form  id="userUpdate" method="post"  enctype="multipart/form-data" th:object="${user}">
 						<input type="hidden" name="userNo" th:value="*{userNo}" />
 					    <div>
-					        <span>学工号: [[${user.userNo}]]</span>
+					        <p>学工号: [[${user.userNo}]]</p>
 					    </div>
 					    <div>
 					    	<span>用户名</span>
@@ -157,12 +157,29 @@
 			<div class="fun">
 				<img class="functionHP" th:src="@{/pics/function.png}"/><p class="functionHead">功能</p>
 				<ul>
-					<li class="function">
+					<li class="function" th:if="${session.user.role.roleId eq 1}">
 						<div class="functionDirection">
-							<p>课程类型</p><img th:src="@{/pics/funArrow.png}"/>
+							<p>用户管理</p><img th:src="@{/pics/funArrow.png}"/>
+						</div>		
+						<ul class="moreFun">
+							<li>
+								<a th:href="@{/security/userlist}" target="secIframe">
+									<p>用户信息管理</p>
+								</a>
+							</li>
+							<li>
+								<a th:href="@{/role/rolelist}" target="secIframe">
+									<p>角色信息管理</p>
+								</a>
+							</li>
+						</ul>
+					</li>
+					<li class="function">
+						<div class="functionDirection" >
+							<p >课程类型</p><img th:src="@{/pics/funArrow.png}"/>
 						</div>						
 						<ul class="moreFun">
-							<li>								
+							<li  th:if="${session.user.role.roleId eq 2 ||session.user.role.roleId eq 1}">								
 								<a th:href="@{/courseType/toInput}" target="secIframe">
 									<p>新增课程类型</p>
 								</a>
@@ -179,14 +196,31 @@
 							<p>课 程 </p><img th:src="@{/pics/funArrow.png}"/>
 						</div>							
 						<ul class="moreFun">
-							<li>								
-								<a th:href="@{/course/toInput}" target="secIframe">
+							<li  th:if="${session.user.role.roleId eq 2 ||session.user.role.roleId eq 1}">								
+								<a th:href="@{/course/toInput}" target="secIframe" >
 									<p>新增课程</p>
 								</a>
 							</li>
 							<li>
 								<a th:href="@{/course/list}" target="secIframe">
 									<p>课程管理</p>
+								</a>
+							</li>
+						</ul>
+					</li>
+					<li class="function">
+						<div class="functionDirection">
+							<p>查看报表</p><img th:src="@{/pics/funArrow.png}"/>
+						</div>		
+						<ul class="moreFun">
+							<li>
+								<a th:href="@{/comment/toReport}" target="secIframe">
+									<p>课程评论报表</p>
+								</a>
+							</li>
+							<li>
+								<a th:href="@{/course/toReport}" target="secIframe">
+									<p>课程类型报表</p>
 								</a>
 							</li>
 						</ul>
@@ -201,7 +235,20 @@
 									<p>打地鼠</p>
 								</a>
 							</li>
-							<li><p>fun6</p></li>
+							
+						</ul>
+					</li>
+					<li class="function">
+						<div class="functionDirection">
+							<p>留言板</p><img th:src="@{/pics/funArrow.png}"/>
+						</div>		
+						<ul class="moreFun">
+							<li>
+								<a th:href="@{/message/list}" target="secIframe">
+									<p>留言板</p>
+								</a>
+							</li>
+							
 						</ul>
 					</li>
 				</ul>

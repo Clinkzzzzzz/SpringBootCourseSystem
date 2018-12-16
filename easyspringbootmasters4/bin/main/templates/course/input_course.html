@@ -5,6 +5,8 @@
     <title>新增课程类型</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
    <script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
    <script th:inline="javascript">
     $(function() {
         $("#coursetextbookpic").change(function (e) {
@@ -21,6 +23,11 @@
     });
     
     function ajaxSubmit(){
+    	var roleid=[[${session.user.role.roleId}]];
+    	if(roleid==3){
+    		alert("你没有足够的权限");
+    		return;
+    	}
     	var formData = new FormData($("#courseAdd")[0]);
     	var courseNo=$("#courseNo").val().trim();
     	var courseName=$("#courseName").val().trim();
@@ -52,6 +59,14 @@
     		alert("至少选择一项选课条件");
     		return;
     	}
+    	if(!isPInt(courseHours)){
+    		alert("学时只能为正整数");
+    		return;
+    	}
+    	if(!isZ(coursePoint)){
+    		alert("学分只能为正数");
+    		return;
+    	}
     	
         $.ajax({
             url: /*[[@{/course/create}]]*/,
@@ -75,6 +90,18 @@
         	},
         });
     }
+    
+    function isPInt(str) {
+        var g = /^[1-9]*[1-9][0-9]*$/;
+        ///^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/
+        return g.test(str);
+    }
+    
+    function isZ(str) {
+        var g = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;
+        //
+        return g.test(str);
+    }
 </script>
 </head>
 <body style="padding:8px;">
@@ -91,7 +118,7 @@
         </div>
         <div>
             <span>课程名称:</span>
-            <input type="text" name="courseName" id="courseName">
+            <input type="text" name="courseName" id="courseName" maxlength="20">
         </div>
         <div>
             <span>教材封面:</span>
@@ -99,11 +126,11 @@
         </div>
         <div>
             <span>课程课时:</span>
-            <input type="text" name="courseHours" id="courseHours">
+            <input type="text" name="courseHours" id="courseHours" maxlength="10">
         </div>
         <div>
             <span>课程学分:</span>
-            <input type="text" name="coursePoint" id="coursePoint">
+            <input type="text" name="coursePoint" id="coursePoint" maxlength="10">
         </div>
         <div>
             <span>课程类型:</span>
@@ -131,7 +158,7 @@
         </div>
 
         <div>
-            <input type="button" value="开设课程"  onclick="ajaxSubmit()" >
+            <input class="add btn btn-primary" type="button" value="开设课程"  onclick="ajaxSubmit()" >
         </div>
     </form>
 </body>

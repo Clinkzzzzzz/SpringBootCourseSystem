@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>角色管理</title>
+<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script th:inline="javascript">
+	$(function() {
+		$(".add").click(function(){
+			if($(".updateDialog").is(":visible")){
+				$('.updateDialog').fadeOut(100);
+			}
+			$(".addDialog").show(200)
+		});
+		
+		$(".closeUpdateDialog").click(function(){
+			 $('.updateDialog').fadeOut(100);
+		});
+		
+		$(".closeAddDialog").click(function(){
+			$('.addDialog').fadeOut(100);
+		})
+		
+		$(".addRole").click(function(){
+			var roleName=$("#addRoleName").val().trim();
+			if(roleName==""){
+				alert("角色名不能为空");
+				return;
+			}
+			$.ajax({
+				url: /*[[@{/role/addRole}]]*/,
+				type: 'post',
+				datatype: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify({"roleName" : roleName}),
+				async:false,
+				success: function(data){
+					var key="success";
+					if(data[key]){
+						alert(data[key]);
+						window.location.href=/*[[@{/role/rolelist}]]*/
+					}else{
+						alert("添加角色失败。。。");
+					}
+				},
+				error: function(data){
+					alert("连接失败拉。。。。:(");
+				}
+			})
+		})
+		
+		$(".updateRole").click(function(){
+				var roleId=$("#updateRoleId").val();
+				var roleName=$("#updateRoleName").val().trim();
+				if(roleName==""){
+					alert("角色名不能为空");
+					return;
+				}
+				$.ajax({
+					url: /*[[@{/role/update}]]*/,
+					type: 'post',
+					datatype: 'json',
+					contentType: 'application/json',
+					data: JSON.stringify({"roleId" : roleId,"roleName" : roleName}),
+					async:false,
+					success: function(data){
+						var key="success";
+						if(data[key]){
+							alert(data[key]);
+							window.location.href=/*[[@{/role/rolelist}]]*/
+						}else{
+							alert("修改角色失败。。。");
+						}
+					},
+					error: function(data){
+						alert("连接失败拉。。。。:(");
+					}
+				})
+		})
+	});
+	
+	function ajaxRoleUpdate(id){
+    		$.ajax({
+    			url: [[@{/role/getRole/}]]+id,
+    			type: 'UPDATE',
+    			async:false,
+    			success: function(data){
+    				var key="success";
+    				if(data[key]){
+    					if($(".addDialog").is(":visible")){
+    						$('.addDialog').fadeOut(100);
+    					}
+    					$('#updateRoleId').val(data["role"].roleId);
+        				$('#updateRoleName').val(data["role"].roleName);
+        				$(".updateDialog").show(200);
+    				}else{
+    					alert(data["fail"]);
+    				}
+    			},
+    			error: function(data){
+    				alert("连接失败拉。。。。:(");
+    			}
+    		})
+	}
+	
+	function ajaxRoleDelete(roleId){
+        if(confirm('确定删除该角色吗？？其相关信息会全部删除')){
+    		$.ajax({
+    			url: [[@{/role/remove/}]]+roleId,
+    			type: 'DELETE',
+    			datatype: 'json',
+    			contentType: 'application/json',
+    			data: JSON.stringify({"roleId" : roleId}),
+    			async:false,
+    			success: function(data){
+    				var key="success";
+    				if(data[key]){
+    					window.location.href=/*[[@{/role/rolelist}]]*/
+    				}else{
+    					alert("操作失败");
+    				}
+    			},
+    			error: function(data){
+    				alert("连接失败拉。。。。:(");
+    			}
+    		})
+        }
+        return false;
+	}
+</script>
+
+</head>
+<body style="padding:8px;">
+	<button class="add btn btn-primary">添加角色</button>
+	<div style="margin-bottom: 20px;"></div>
+	<table class="table table-striped">
+	    <tr>
+	        <th>编号</th>
+	        <th>角色名</th>
+	        <th>操作</th>
+	    </tr>
+	    <tr class="role" th:each="role : ${roleList}">
+	        <td th:text="${role.roleId}" nowrap></td>
+	        <td id="roleName" th:text="${role.roleName}" nowrap></td>
+	        <td nowrap>
+	            <button class="update btn-danger btn btn-sm" th:onclick="'javascript:ajaxRoleUpdate('+${role.roleId}+')'">修改</button>
+	            <button class="delete btn-danger btn btn-sm" th:onclick="'javascript:ajaxRoleDelete('+${role.roleId}+')'" th:if="${role.roleId>3}">删除</button>
+	        </td>
+	     </tr>
+	</table>
+	<div class="addDialog" style="display:none;position: absolute;top: 20%;left: 30%;border: 1px solid black;background-color: white;padding: 10px;border-radius: 5px;"><!-- 添加角色弹出框 -->
+		<span  class="closeAddDialog" style="float: right;cursor:pointer;">X</span>
+		<h5>添加角色:</h5>
+		<input type="text" id="addRoleName" maxlength="15"></input>
+		<button class="addRole btn btn-primary btn-sm">添加</button>
+	</div>
+	
+	<div class="updateDialog" style="display:none;position: absolute;top: 20%;left: 30%;border: 1px solid black;background-color: white;padding: 10px;border-radius: 5px;"><!-- 修改角色弹出框 -->
+		<span  class="closeUpdateDialog" style="float: right;cursor:pointer;">X</span>
+		<h5>修改角色:</h5>
+		<input type="hidden" id="updateRoleId"></input>
+		<input type="text" id="updateRoleName" maxlength="15"></input>
+		<button class="updateRole btn btn-primary btn-sm">修改</button>
+	</div>
+</body>
+</html>

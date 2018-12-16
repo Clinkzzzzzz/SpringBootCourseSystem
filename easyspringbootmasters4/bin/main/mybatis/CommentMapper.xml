@@ -10,7 +10,7 @@
 		create_time,
 		course_no,
 		user_no,
-		comment_type
+		type_id
 	</sql>
 
 	<resultMap type="com.ray.entity.User" id="userRM">
@@ -20,6 +20,7 @@
 		<result property="userName" column="user_name"/>
 		<result property="userPwd"  column="user_pwd"/>
 		<result property="maxScore" column="max_score"/>
+		<result property="userPic" column="user_pic"/>
 		<!-- 对象映射 -->
 		<association property="role" javaType="com.ray.entity.Role">
 			<!-- 主键 -->
@@ -59,11 +60,31 @@
 		<id property="commentId" column="comment_id"/>
 		<!-- 普通 -->
 		<result property="content" column="content"/>
-		<result property="createTime"  column="create_time"/>
-		<result property="commentType" column="comment_type"/>
+		<result property="createTime" jdbcType="TIMESTAMP" column="create_time" javaType="java.sql.Timestamp" />
 		<!-- 对象映射 -->
 		<association property="course" javaType="com.ray.entity.Course" resultMap="courseRM"/>
 		<association property="user" javaType="com.ray.entity.User" resultMap="userRM"/>
+		<association property="commentType" javaType="com.ray.entity.CommentType">
+            <!-- 主键映射 -->
+            <id property="typeId" column="type_id"/>
+
+            <!-- 普通字段 property指实体的属性；column结果集的字段名称 -->
+            <result property="typeName" column="type_name"/>
+        </association>
+	</resultMap>
+	
+	<resultMap type="java.util.Map" id="type_cnt">
+		<result column="course_no" property="courseNo"></result>
+		<result column="count" property="count"></result>
+	</resultMap>
+	
+	<resultMap type="java.util.Map" id="c">
+		<result column="good" property="good"></result>
+		<result column="bad" property="bad"></result>
+	</resultMap>
+	<resultMap type="java.util.Map" id="lc">
+		<result column="course_no" property="courseNo"></result>
+		<association property="c" javaType="java.util.Map" resultMap="c"/>
 	</resultMap>
 	
 	<!-- 增 -->
@@ -71,7 +92,7 @@
         insert into tbl_comments
         (<include refid="cmt"/>)
         values
-        (#{commentId},#{content},#{createTime},#{course.courseNo},#{user.userNo},#{commentType})
+        (#{commentId},#{content},#{createTime,jdbcType=TIMESTAMP},#{course.courseNo},#{user.userNo},#{commentType.typeId})
     </insert>
     
     <!-- 删1 -->
@@ -84,25 +105,89 @@
         delete from tbl_comments
         where course_no = #{courseNo}
     </delete>
+    <!-- 删3 -->
+    <delete id="removeCommentByTypeId" parameterType="int">
+    	delete from tbl_comments
+    	where type_id=#{typeId}
+    </delete>
+    
+    <delete id="removeCommentByUserNo" parameterType="string">
+    	delete from tbl_comments
+    	where user_no=#{userNo}
+    </delete>
     
     <!--改 -->
     <update id="updateComment" parameterType="com.ray.entity.Comment" >
         update tbl_comments
         <set>
             <if test="content!=null">content=#{content},</if>
-            <if test="commentType!=null">comment_type=#{commentType},</if>
+            <if test="commentType!=null">type_id=#{commentType.typeId},</if>
         </set>
         where comment_id = #{commentId}
     </update>
     
-    <select id="loadCommentById" parameterType="int" resultMap="commentRM">
-        select * from tbl_comments
-        where comment_id= #{commentId}
+    <!-- 根据id查询评论 -->
+    <select id="loadCommentById" parameterType="int" resultType="com.ray.entity.Comment" resultMap="commentRM">
+        select 
+        p.comment_id,p.content,p.create_time,p.course_no,b.type_id,b.type_name,c.user_no,c.user_name,c.user_pic
+        from tbl_comments p
+        left join tbl_comment_type b
+        on p.type_id=b.type_id
+        left join tbl_users c
+        on p.user_no=c.user_no
+        where p.comment_id= #{commentId}
     </select>
     
     <!-- 根据courseId查询 -->
     <select id="loadCommentByCourseNo" parameterType="string" resultMap="commentRM">
         select * from tbl_comments
         where course_no= #{courseNo}
+    </select>
+    
+    <select id="loadCommentByUserNo" parameterType="string" resultType="int">
+    	select comment_id
+    	from tbl_comments
+    	where user_no=#{userNo}
+    </select>
+    
+    <!-- 根据类型查询评论 -->
+    <select id="loadCommentByTypeId" parameterType="int" resultType="int">
+        select comment_id from tbl_comments
+        where type_id= #{typeId}
+    </select>
+    
+    <!-- 查询所有评论 -->
+    <select id="loadAllComment" resultMap="commentRM">
+    	select 
+        p.comment_id,p.content,p.create_time,p.course_no,b.type_id,b.type_name,c.user_no,c.user_name,c.user_pic
+        from tbl_comments p
+        left join tbl_comment_type b
+        on p.type_id=b.type_id
+        left join tbl_users c
+        on p.user_no=c.user_no
+        order by p.comment_id asc
+    </select>
+    
+    <!-- 查询各课程拥某个种类评论的数目 -->
+    <select id="loadCountByType" resultMap="type_cnt" parameterType="int">
+    	SELECT course_no,COUNT(type_id) AS count
+		FROM tbl_comments
+		GROUP BY course_no,type_id
+		HAVING type_id=#{typeId};
+    </select>
+    
+    <select id="loadCount" resultMap="lc">
+		select a.course_no,good,bad
+		from(
+				SELECT DISTINCT MainTable.course_no,ifNULL(SubTable.good, 0) AS good
+				FROM tbl_comments AS MainTable LEFT JOIN  
+				(SELECT course_no,COUNT(1) AS good FROM tbl_comments WHERE type_id = 1 GROUP BY course_no) AS SubTable  
+				ON MainTable.course_no = SubTable.course_no
+		)a LEFT JOIN (
+				SELECT DISTINCT MainTable.course_no,ifNULL(SubTable.bad, 0) AS bad
+				FROM tbl_comments AS MainTable LEFT JOIN  
+				(SELECT course_no,COUNT(1) AS bad FROM tbl_comments WHERE type_id = 2 GROUP BY course_no) AS SubTable  
+				ON MainTable.course_no = SubTable.course_no
+		)b on a.course_no=b.course_no
     </select>
 </mapper>

@@ -52,6 +52,8 @@ public class Course implements Serializable{
      * 课程类型
      */
     private CourseType courseType;
+    
+    private User user;
 
     public String getCourseNo() {
         return courseNo;
@@ -134,5 +136,11 @@ public class Course implements Serializable{
         this.reqs = reqs;
         this.courseReqs = this.reqs.split("\\|");
     }
+	public User getUser() {
+		return user;
+	}
+	public void setUser(User user) {
+		this.user = user;
+	}
 
 }

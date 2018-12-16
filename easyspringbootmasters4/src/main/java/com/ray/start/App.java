@@ -1,6 +1,7 @@
 package com.ray.start;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -14,11 +15,12 @@ import tk.mybatis.spring.annotation.MapperScan;
  * @author ray
  * 
  *
- * ComponentScan(basePackages = "xiao.ze.demo")  这里指定你要扫描的包及其子包子类
- * MapperScan("xiao.ze.demo.mapper") 扫描：该包下相应的class,主要是MyBatis的持久化类，
+ * ComponentScan(basePackages = "com.ray")  这里指定你要扫描的包及其子包子类
+ * MapperScan("com.ray.mapper") 扫描：该包下相应的class,主要是MyBatis的持久化类，
  * 这里用的是mapper的扫描，不是mybatis自身扫描
  *
  */
+@EnableAutoConfiguration(exclude = {org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class})
 @ComponentScan(basePackages = "com.ray")
 @SpringBootApplication
 @MapperScan("com.ray.mapper")

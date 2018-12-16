@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ray.entity.User;
+import com.ray.mapper.CommentMapper;
+import com.ray.mapper.CourseMapper;
 import com.ray.mapper.UserMapper;
 import com.ray.service.UserService;
 
@@ -22,6 +24,13 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserMapper usermapper;
+	
+	@Autowired
+	private CourseMapper courseMapper;
+	
+	@Autowired
+	private CommentMapper commentMapper;
+	
 	
 	@Override
 	public User get(String userNo) {
@@ -68,6 +77,26 @@ public class UserServiceImpl implements UserService {
 		User user=usermapper.loadUserByNo(userNo);
 		userPic=user.getUserPic();
 		return userPic;
+	}
+
+
+	@Override
+	public List<User> loadAllUser() {
+		List<User> list=usermapper.loadAllUser();
+		return list;
+	}
+
+
+
+	@Override
+	public void removeUser(String userNo) {
+		if(courseMapper.loadCourseByUserNo(userNo)!=null) {
+			courseMapper.removeCourseByUserNo(userNo);
+		}
+		if(commentMapper.loadCommentByUserNo(userNo)!=null) {
+			commentMapper.removeCommentByUserNo(userNo);
+		}
+		usermapper.removeUserByNo(userNo);
 	}
 	
 	

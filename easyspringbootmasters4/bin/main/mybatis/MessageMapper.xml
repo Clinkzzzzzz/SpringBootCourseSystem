@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 配置命名空间 -->
+<mapper namespace="com.ray.mapper.MessageMapper">
+	<sql id="mmt">msg_id,
+		content,
+		create_time,
+		user_no
+	</sql>
+	
+	<resultMap type="com.ray.entity.User" id="userRM">
+		<id property="userNo" column="user_no"/>
+		<result property="userName" column="user_name"/>
+		<result property="userPwd"  column="user_pwd"/>
+		<result property="maxScore" column="max_score"/>
+		<result property="userPic" column="user_pic"/>
+		<!-- 对象映射 -->
+		<association property="role" javaType="com.ray.entity.Role">
+			<!-- 主键 -->
+			<id property="roleId" column="role_id"/>
+			<result property="roleName" column="role_name"/>
+		</association>
+	</resultMap>
+	
+	<resultMap type="com.ray.entity.Message" id="messageRM">
+		<id property="msgId" column="msg_id"/>
+		<result property="content" column="content"/>
+		<result property="createTime" jdbcType="TIMESTAMP" column="create_time" javaType="java.sql.Timestamp" />
+		<association property="user" javaType="com.ray.entity.User" resultMap="userRM"/>
+	</resultMap>
+	
+		<!-- 增 -->
+	<insert id="addMessage" parameterType="com.ray.entity.Message">
+        insert into tbl_msg
+        (<include refid="mmt"/>)
+        values
+        (#{msgId},#{content},#{createTime,jdbcType=TIMESTAMP},#{user.userNo})
+    </insert>
+    
+     <delete id="removeMessageById" parameterType="int">
+        delete from tbl_msg
+        where msg_id = #{msgId}
+    </delete>
+    
+    <delete id="removeMessageByUserNo" parameterType="string">
+        delete from tbl_msg
+        where user_no = #{userNo}
+    </delete>
+    
+    <update id="updateMessage" parameterType="com.ray.entity.Message" >
+        update tbl_msg
+        <set>
+            <if test="content!=null">content=#{content},</if>
+        </set>
+        where msg_id = #{msgId}
+    </update>
+    
+    <select id="loadAllMessage" resultMap="messageRM">
+    	select 
+		p.msg_id,p.content,p.create_time,p.user_no,b.user_no,b.user_name,b.user_pic,c.role_name
+		from tbl_msg p
+		left join tbl_users b
+		on p.user_no=b.user_no
+		left join tbl_users_role c
+		on c.role_id=b.role_id
+		order by p.msg_id asc
+    </select>
+    
+    <select id="loadMessageByUserNo" parameterType="string" resultMap="messageRM">
+        select * from tbl_msg
+        where user_no= #{userNo}
+    </select>
+    
+    <select id="loadMessageById" parameterType="int" resultMap="messageRM">
+    	select * from tbl_msg
+    	where msg_id=#{msgId}
+    </select>
+</mapper> 

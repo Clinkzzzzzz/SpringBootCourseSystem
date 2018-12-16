@@ -4,6 +4,7 @@
 package com.ray.entity;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 import org.springframework.stereotype.Component;
 
@@ -23,13 +24,13 @@ public class Comment implements Serializable{
 	
 	private String content;
 	
-	private String createTime;
+	private Timestamp createTime;
 	
 	private Course course;
 	
 	private User user;
 	
-	private String commentType;
+	private CommentType commentType;
 
 	public Integer getCommentId() {
 		return commentId;
@@ -47,11 +48,11 @@ public class Comment implements Serializable{
 		this.content = content;
 	}
 
-	public String getCreateTime() {
+	public Timestamp getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(String createTime) {
+	public void setCreateTime(Timestamp createTime) {
 		this.createTime = createTime;
 	}
 
@@ -71,11 +72,11 @@ public class Comment implements Serializable{
 		this.user = user;
 	}
 
-	public String getCommentType() {
+	public CommentType getCommentType() {
 		return commentType;
 	}
 
-	public void setCommentType(String commentType) {
+	public void setCommentType(CommentType commentType) {
 		this.commentType = commentType;
 	}
 	

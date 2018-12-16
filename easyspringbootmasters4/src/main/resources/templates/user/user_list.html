@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>用户管理</title>
+<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+<script th:inline="javascript">
+    $(function() {
+        //分页操作
+        $(".linkspan").click(function () {
+
+            var pageNo = [[${page.pageNum}]];
+            var totalPageNum = [[${page.pages}]];
+            var re = /^[0-9]+.?[0-9]*$/;
+
+            if (String($(this).attr("id")) == String("one"))
+                pageNo = 1;
+
+            if (String($(this).attr("id")) == String("two"))
+                pageNo = pageNo - 1;
+
+            if (String($(this).attr("id")) == String("three"))
+                pageNo = pageNo + 1;
+
+            if (String($(this).attr("id")) == String("four"))
+                pageNo = totalPageNum;
+
+            if (String($(this).attr("id")) == String("five")) {
+                var num = $.trim($("#pageNo").val());
+
+                if (!re.test(num)) {
+                    alert("输入的不是数字!");
+                    return;
+                }
+                pageNo = parseInt(num);
+                if (pageNo < 1 || pageNo > totalPageNum) {
+                    alert("页号超出范围，有效范围：[1-" + totalPageNum + "]!");
+                    return;
+                }
+
+            }
+
+            var href = "?pageNo=" + pageNo;
+            $(location).attr("href", href);
+            return false;
+
+        });
+        
+		$(".closeAddDialog").click(function(){
+			 $('.addDialog').fadeOut(100);
+		});
+		
+		$(".closeModifyDialog").click(function(){
+			 $('.modifyDialog').fadeOut(100);
+		});
+        
+        $(".add").click(function(){
+			if($(".modifyDialog").is(":visible")){
+				$('.modifyDialog').fadeOut(100);
+			}
+        	$(".addDialog").show(200)
+        });
+        
+		$(".addUser").click(function(){
+			var userNo=$("#addUserNo").val().trim();
+			var userName=$("#addUserName").val().trim();
+			var userPwd=$("#addUserPwd").val();
+            var userRoleId=$('#addUserRole option:selected').val();
+            var userRoleName=$('#addUserRole option:selected').text();
+			if(userNo==""||userName==""||userPwd==""||userRoleId==0){
+				alert("请完善必要信息!");
+				return;
+			}
+			$.ajax({
+				url: /*[[@{/security/addUser}]]*/,
+				type: 'post',
+				datatype: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify({"userNo" : userNo,"userName" : userName,"role" : {"roleId" : userRoleId,"roleName" : userRoleName},"userPwd" : userPwd,"maxScore" : "0"}),
+				async:false,
+				success: function(data){
+    				var key="success";
+    				if(data[key]){
+    					alert(data[key]);
+    					$("#page").load(window.location.href + (" #pageInfo"));
+    					var pageNo = [[${page.pageNum}]];
+    		            var href = "?pageNo=" + pageNo;
+    		            $(location).attr("href", href);
+    				}else{
+    					alert(data["fail"]);
+    				}
+				},
+				error: function(data){
+					alert("连接失败拉。。。。:(");
+				}
+			})
+		})
+		
+		$(".modifyUser").click(function(){
+			var userNo=$("#modifyUserNo").val().trim();
+			var userName=$("#modifyUserName").val().trim();
+			var userPwd=$("#modifyUserPwd").val();
+            var userRoleId=$('#modifyUserRole option:selected').val();
+            var userRoleName=$('#modifyUserRole option:selected').text();
+			if(userNo==""||userName==""||userPwd==""||userRoleId==0){
+				alert("请完善必要信息!");
+				return;
+			}
+			$.ajax({
+				url: /*[[@{/security/modify}]]*/,
+				type: 'post',
+				datatype: 'json',
+				contentType: 'application/json',
+				data: JSON.stringify({"userNo" : userNo,"userName" : userName,"role" : {"roleId" : userRoleId,"roleName" : userRoleName},"userPwd" : userPwd}),
+				async:false,
+				success: function(data){
+    				var key="success";
+    				if(data[key]){
+    					alert(data[key]);
+    					$("#page").load(window.location.href + (" #pageInfo"));
+    					var pageNo = [[${page.pageNum}]];
+    		            var href = "?pageNo=" + pageNo;
+    		            $(location).attr("href", href);
+    				}else{
+    					alert(data["fail"]);
+    				}
+				},
+				error: function(data){
+					alert("连接失败拉。。。。:(");
+				}
+			})
+		})
+    });
+    
+	function ajaxUserDelete(userNo){
+        if(confirm('确定删除该用户吗？？其相关信息会全部删除')){
+    		$.ajax({
+    			url: [[@{/security/remove/}]]+userNo,
+    			type: 'DELETE',
+    			datatype: 'json',
+    			contentType: 'application/json',
+    			data: JSON.stringify({"userNo" : userNo}),
+    			async:false,
+    			success: function(data){
+    				var key="success";
+    				if(data[key]){
+    					alert(data[key]);
+    					$("#page").load(window.location.href + (" #pageInfo"));
+    					var pageNo = [[${page.pageNum}]];
+    		            var href = "?pageNo=" + pageNo;
+    		            $(location).attr("href", href);
+    				}
+    			},
+    			error: function(data){
+    				alert("连接失败拉。。。。:(");
+    			}
+    		})
+        }
+        return false;
+	}
+	
+	function ajaxUserModify(userNo){
+		$.ajax({
+			url: [[@{/security/getUser/}]]+userNo,
+			type: 'UPDATE',
+			async:false,
+			success: function(data){
+				var key="success";
+				if(data[key]){
+					if($(".addDialog").is(":visible")){
+						$('.addDialog').fadeOut(100);
+					}
+					$('#modifyUserNo').val(data["getUser"].userNo);
+    				$('#modifyUserName').val(data["getUser"].userName);
+    				$("#modifyUserPwd").val(data["getUser"].userPwd);
+    				$('#modifyUserRole').val(data["getUser"].role.roleId);
+    				$('.modifyDialog').show(200);
+				}else{
+					alert(data["fail"]);
+				}
+			},
+			error: function(data){
+				alert("连接失败拉。。。。:(");
+			}
+		})		
+	}
+</script>
+
+<style>
+	.form-group>label{
+		width:80px;
+	}
+</style>
+
+</head>
+<body style="padding:8px;">
+	<div id="userManage">
+		<button class="add btn btn-primary">添加用户</button>
+		<div style="margin-bottom: 20px;"></div>
+	<div id="userList">
+			<table class="table table-striped">
+			    <tr>
+			        <th>学号</th>
+			        <th>用户名</th>
+			        <th>密码</th>
+			        <th>角色</th>
+			        <th>操作</th>
+			    </tr>
+			    <tr class="user" th:each="user : ${page.list}">
+			        <td class="userNo"  th:text="${user.userNo}" nowrap></td>
+			        <td class="userName"  th:text="${user.userName}" nowrap></td>
+			        <td class="pwd"  th:text="${user.userPwd}" nowrap></td>
+			        <td class="role" th:text="${user.role.roleName}" nowrap></td>
+			        <td nowrap>
+			            <button class="modify btn btn-danger btn-sm" th:onclick="'javascript:ajaxUserModify(\''+${user.userNo}+'\')'">修改</button>
+			            <button class="delete btn btn-danger btn-sm" th:onclick="'javascript:ajaxUserDelete(\''+${user.userNo}+'\')'">删除</button>
+			        </td>
+			    </tr>
+			</table>
+		</div>
+	</div>
+	<div id="page">
+		<div id="pageInfo">
+		    共[[${page.total}]]条,
+		    <span th:if="${ ( page.pageNum - 1 ) * page.pageSize + 1 == page.total }">
+					当前显示第[[${page.total}]]条,
+			</span>
+		    <span th:if="${ ( page.pageNum - 1 ) * page.pageSize + 1 != page.total }">
+					当前显示[[${page.startRow}]]-[[${page.endRow}]]条,
+			</span>
+		    第[[${page.pageNum}]]/[[${page.pages}]]页
+		    |
+		    <a href="#" th:if="${page.pageNum > 1}"><span class="linkspan" id="one">首页</span>&nbsp;</a>
+		    <a href="#" th:if="${page.pageNum > 1}"><span class="linkspan" id="two">上一页</span>&nbsp;</a>
+		    <a href="#" th:if="${page.pageNum < page.pages}"><span class="linkspan" id="three">下一页</span>&nbsp;</a>
+		    <a href="#" th:if="${page.pageNum != page.pages}"><span class="linkspan" id="four">末页</span>&nbsp;</a>
+		    |
+		    到<input type="text" id="pageNo" size=4 style="text-align:right;" onkeypress="onlynumber();"/> 页
+		    <button class="linkspan btn btn-primary btn-sm" id="five" style="text-decoration:none;"> 跳 转 </button>
+		</div>
+	</div>
+	<div class="addDialog" style="display:none;position: absolute;top: 20%;left: 30%;border: 1px solid black;background-color: white;padding: 10px;border-radius: 5px;"><!-- 添加角色信息 -->
+		<span  class="closeAddDialog" style="float: right;cursor:pointer;">X</span>
+		<h5>添加用户:</h5>
+		<div style="margin-bottom: 10px;"></div>
+		<div class="form-group">
+			<label class="">学工号：</label>
+			<input type="text" id="addUserNo"/><br/>
+		</div>
+		<div class="form-group">
+			<label class="">用户名：</label>
+			<input type="text" id="addUserName"/><br/>
+		</div>
+		<div class="form-group">
+			<label class="">用户密码：</label>
+			<input type="text" id="addUserPwd"/><br/>
+		</div>
+		<div class="form-group">
+			<label class="">选择角色：</label>
+			<select name="role.roleId" id="addUserRole">
+				<option th:value="0">=请选择=</option>
+				<option th:each="list:${roleList}" th:value="${list.roleId}" th:text="${list.roleName}"></option>
+			</select>
+		</div>
+		<button class="addUser btn btn-primary btn-sm"  style="width:100%;">添加</button>
+	</div>
+
+	<div class="modifyDialog" style="display:none;position: absolute;top: 20%;left: 30%;border: 1px solid black;background-color: white;padding: 10px;border-radius: 5px;"><!-- 修改角色信息 -->
+		<span  class="closeModifyDialog" style="float: right;cursor:pointer;">X</span>
+		<h5>修改用户:</h5>
+		<div style="margin-bottom: 10px;"></div>
+		<div class="form-group">
+			<label class="">学工号：</label>
+			<input type="text" id="modifyUserNo" readonly="readonly"/>
+		</div>
+		<div class="form-group">
+			<label class="">用户名：</label>
+			<input type="text" id="modifyUserName"/>
+		</div>
+		<div class="form-group">
+			<label class="">用户密码：</label>
+			<input type="text" id="modifyUserPwd"/>
+		</div>
+		<div class="form-group">
+			<label class="">选择角色：</label>
+			<select name="role.roleId" id="modifyUserRole">
+			<option th:each="list:${roleList}" th:value="${list.roleId}" th:text="${list.roleName}"></option>
+			</select>
+		</div>
+		<button class="modifyUser btn btn-primary btn-sm" style="width:100%;">修改</button>
+	</div>
+</body>
+</html>

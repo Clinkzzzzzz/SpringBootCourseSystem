@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ray.entity.Course;
+import com.ray.mapper.CommentMapper;
 import com.ray.mapper.CourseMapper;
 import com.ray.service.CourseService;
 import com.ray.utils.CourseQueryHelper;
@@ -26,6 +27,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Autowired
     private CourseMapper courseMapper;
+    
+    @Autowired
+    private CommentMapper commentMapper;
 
     @Override
     public void addCourse(Course course) {
@@ -36,7 +40,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public boolean removeCourseByNo(String courseNo) {
-
+    	if(commentMapper.loadCommentByCourseNo(courseNo)!=null) {
+    		commentMapper.removeCommentByCourseNo(courseNo);
+    	}
         courseMapper.removeCourseByNo(courseNo) ;
         return true;
 
@@ -116,5 +122,19 @@ public class CourseServiceImpl implements CourseService {
 
         return map;
     }
+
+
+	@Override
+	public List<Map<String, Object>> loadCountByType() {
+		List<Map<String, Object>> list=courseMapper.loadCountByType();
+		return list;
+	}
+
+
+	@Override
+	public boolean removeCourseByUserNo(String userNo) {
+		courseMapper.removeCourseByUserNo(userNo);
+		return true;
+	}
 
 }

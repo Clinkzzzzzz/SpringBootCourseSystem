@@ -3,7 +3,10 @@ server:                  #配置server
     uri-encoding: UTF-8
   servlet:
     context-path: /ray
+    session:
+      timeout: 7200
   port: 8090
+
 
 spring:
   datasource:

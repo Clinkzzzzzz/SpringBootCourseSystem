@@ -47,5 +47,9 @@ public interface UserService {
     List<User> loadUserByGameRank(Integer rank);
     
     byte[] getUserPic(String userNo);
+    
+    List<User> loadAllUser();
+    
+    void removeUser(String userNo);
 }
 

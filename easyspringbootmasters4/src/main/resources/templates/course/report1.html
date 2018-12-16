@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>课程评论报表</title>
+   <script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+   <script type="text/javascript" th:src="@{/js/highcharts.js}"></script>
+   <script type="text/javascript" th:src="@{/js/exporting.js}"></script>
+   <script type="text/javascript" th:src="@{/js/highcharts-3d.js}"></script>
+   <script th:inline="javascript">
+   		$(function(){
+   			var xtext=[];
+   			var nums=[];
+   			$.ajax({
+   				url: [[@{/course/getTypeCnt}]],
+   				type:"post",
+   				async:true,
+   				data:{},
+   				datatype:"json",
+   				success:function(data){
+   					for(var i=0;i<data.length;i++){
+   						xtext.push((data[i])["typeName"]);
+   						nums.push((data[i])["count"]);
+   					}
+   					chart.series[0].setData(nums);
+   				},
+   				error:function(data){
+   					alert("出错了。。。。。");
+   				}
+   			});
+   			
+      	     Highcharts.setOptions({
+                 lang: {
+                    　 			   printChart:"打印图表",
+                       downloadJPEG: "下载JPEG 图片" , 
+                       downloadPDF: "下载PDF文档"  ,
+                       downloadPNG: "下载PNG 图片"  ,
+                       downloadSVG: "下载SVG 矢量图" , 
+                       exportButtonTitle: "导出图片" 
+                 }
+             });
+   			
+   			var chart= new Highcharts.Chart({
+   				chart:{
+   					height:500,
+   					renderTo:'report1',
+   					type:'column',
+   					options3d: {
+   				         enabled: true,     //显示图表是否设置为3D， 我们将其设置为 true
+   				         alpha: 15,         //图表视图旋转角度
+   				         beta: 15,          //图表视图旋转角度
+   				         depth: 50,         //图表的合计深度，默认为100
+   				         viewDistance: 25   //定义图表的浏览长度
+   				   }
+   				},
+   				title:{
+   					text:'课程类型拥有的课程数量'
+   				},
+   				xAxis:{
+   					categories:xtext,
+   					title : {
+   						text : '课程类型'
+   					}
+   				},
+   				yAxis:{
+   					title:{
+   						text:'数量'	
+   					},
+   				},
+   				series:[{
+   					name:"课程数"
+   				}],
+   				credits:{
+   					enabled: false
+   				}
+   			});
+   		});
+   		
+   </script>
+</head>
+<body>
+	<div id="report1">
+	</div>
+</body>
+</html>

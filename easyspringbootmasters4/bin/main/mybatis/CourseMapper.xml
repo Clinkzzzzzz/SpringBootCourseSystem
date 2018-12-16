@@ -14,8 +14,25 @@
         course_reqs,
         course_point,
         course_memo,
-        course_textbook_pic
+        course_textbook_pic,
+        user_no
     </sql>
+    
+    <resultMap type="com.ray.entity.User" id="userRM">
+		<!-- 主键 -->
+		<id property="userNo" column="user_no"/>
+		<!-- 普通 -->
+		<result property="userName" column="user_name"/>
+		<result property="userPwd"  column="user_pwd"/>
+		<result property="maxScore" column="max_score"/>
+		<result property="userPic" column="user_pic"/>
+		<!-- 对象映射 -->
+		<association property="role" javaType="com.ray.entity.Role">
+			<!-- 主键 -->
+			<id property="roleId" column="role_id"/>
+			<result property="roleName" column="role_name"/>
+		</association>
+	</resultMap>
 
     <!-- 中间，对象的属性和结果集的字段之间的对应关系 -->
     <resultMap type="com.ray.entity.Course" id="courseRM">
@@ -34,6 +51,7 @@
 
         <!-- 对象关联 -->
         <!-- 对一关系 -->
+        <association property="user" javaType="com.ray.entity.User" resultMap="userRM"/>
         <association property="courseType" javaType="com.ray.entity.CourseType">
             <!-- 主键映射 -->
             <id property="typeId" column="type_id"/>
@@ -44,6 +62,11 @@
 
     </resultMap>
 
+	<resultMap type="java.util.Map" id="type_cnt">
+		<result column="type_Name" property="typeName"></result>
+		<result column="count" property="count"></result>
+	</resultMap>
+	
     <!-- 新增 -->
     <insert id="addCourse" parameterType="com.ray.entity.Course">
         insert into tbl_course
@@ -51,7 +74,7 @@
         values
         (#{courseNo},#{courseName},#{courseHours},
         #{courseType.typeId},#{courseStatus},#{reqs},
-        #{coursePoint},#{courseMemo},#{courseTextbookPic,jdbcType=BLOB})
+        #{coursePoint},#{courseMemo},#{courseTextbookPic,jdbcType=BLOB},#{user.userNo})
     </insert>
 
     <!-- 根据主键删除一条 -->
@@ -64,6 +87,11 @@
     <delete id="removeCourseByTypeId" parameterType="int">
         delete from tbl_course
         where type_id = #{typeId}
+    </delete>
+    
+    <delete id="removeCourseByUserNo" parameterType="string">
+    	delete from tbl_course
+    	where user_no = #{userNo}
     </delete>
 
     <!-- 修改 -->
@@ -78,6 +106,7 @@
             <if test="coursePoint!=null">course_point=#{coursePoint},</if>
             <if test="courseMemo!=null">course_memo=#{courseMemo},</if>
             <if test="courseTextbookPic!=null">course_textbook_pic=#{courseTextbookPic,jdbcType=BLOB},</if>
+            <if test="user!=null">user_no=#{user.userNo},</if>
         </set>
        where course_no = #{courseNo} 
     </update>
@@ -86,11 +115,18 @@
     <select id="loadCourseByNo" parameterType="string" resultType="com.ray.entity.Course" resultMap="courseRM">
         select
         p.course_no,p.course_name,p.course_hours,p.course_status,
-        p.course_reqs,p.course_point,p.course_memo,p.course_textbook_pic,b.type_id,b.type_name
+        p.course_reqs,p.course_point,p.course_memo,p.course_textbook_pic,p.user_no,b.type_id,b.type_name,c.user_name
         from tbl_course p
         left join tbl_course_type b
         on p.type_id=b.type_id
+        left join tbl_users c
+        on p.user_no=c.user_no
         where p.course_no= #{courseNo}
+    </select>
+    
+    <select id="loadCourseByUserNo" parameterType="string" resultType="string">
+    	select course_no from tbl_course
+    	where user_no=#{userNo}
     </select>
 
     <!-- 根据typeId查询 -->
@@ -101,9 +137,12 @@
 
     <!-- 带分页查询，注意Mybatis中如果有填写集合类型，只填写集合中元素的类型  -->
     <select id="loadScopedCourses" parameterType="map" resultType="com.ray.entity.Course" resultMap="courseRM">
-        select * from tbl_course p
+        select * 
+        from tbl_course p
         left join tbl_course_type b
         on p.type_id=b.type_id
+        left join tbl_users c
+        on p.user_no=c.user_no
         <where>
             1=1
             <if test="qryCourseName!=null">and p.course_name like concat(concat('%', #{qryCourseName}), '%')</if>
@@ -113,5 +152,12 @@
         </where>
         order by p.course_no
     </select>
-
+    
+    <!-- 查询各课程类型拥有的课程数量 -->
+    <select id="loadCountByType" resultMap="type_cnt">
+		SELECT b.type_name,COUNT(course_no) AS count
+		FROM tbl_course p,tbl_course_type b
+		where p.type_id=b.type_id
+		GROUP BY p.type_id
+    </select>
 </mapper>

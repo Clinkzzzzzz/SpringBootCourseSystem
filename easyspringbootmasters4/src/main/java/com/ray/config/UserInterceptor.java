@@ -3,6 +3,8 @@
  */
 package com.ray.config;
 
+import java.io.PrintWriter;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -23,7 +25,13 @@ public class UserInterceptor implements HandlerInterceptor{
 		System.out.println("------preHandle----------");
 		HttpSession session = request.getSession(true);
 		if(session.getAttribute("user")==null) {
-			response.sendRedirect(request.getContextPath()+"/security/toLogin");
+			//response.sendRedirect(request.getContextPath()+"/security/toLogin");
+		    PrintWriter out = response.getWriter();
+		    out.println("<html>");    
+		    out.println("<script>");    
+		    out.println("window.open ('"+request.getContextPath()+"/security/toLogin','_top')");    
+		    out.println("</script>");    
+		    out.println("</html>"); 
 			return false;
 		}else {
 			session.setAttribute("user", session.getAttribute("user"));

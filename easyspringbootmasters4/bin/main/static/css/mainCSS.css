@@ -211,7 +211,7 @@ a:visited{
 	color: red;
 }
 
-#userUpdate span{
+#userUpdate span,#userUpdate p{
 	width: 100px;
 	display:inline-block;
 	text-align:right;

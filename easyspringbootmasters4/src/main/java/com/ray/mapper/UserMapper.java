@@ -57,5 +57,5 @@ public interface UserMapper {
 	 */
 	List<User> loadUserByGameRank(Integer rank);
 	
-	
+	List<User> loadAllUser();
 }		

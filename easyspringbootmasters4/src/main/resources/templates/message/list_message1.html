@@ -1,0 +1,143 @@
+﻿<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>留言板 </title>
+	<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" media="screen">
+	<link rel="stylesheet" th:href="@{/css/reset.css}">
+	<script type="text/javascript" th:src="@{/js/jquery-3.1.1.min.js}"></script>
+	<script  th:src="@{/js/jquery-browser.js}"></script>
+	<script type="text/javascript" th:src="@{/js/jquery.qqFace.js}"></script>	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script th:inline="javascript">
+	$(function(){
+		var length=[[${length}]];
+		for(var i=1;i<=length;i++){
+			$('#msg-content'+i).html([[${messageList}]][i-1].content);
+		}
+		/*$.ajax({
+			url: [[@{/message/getList}]],
+			type: 'SELECT',
+			async:false,
+			success:function(data){
+				if(data['success']){
+					for(var i=1;i<=data['list'].length;i++){
+						var str=$('#msg-content'+i).text();
+						$('#msg-content'+i).html(replace_em(str));
+					}	
+				}
+			},
+			error: function(data){
+				alert("连接失败拉。。。。:(");
+			}
+		})*/
+		$('#emo').qqFace({
+			id : 'facebox', 
+			assign:'addComment-text', 
+			path: [[@{/pics/arclist/}]]	//表情存放的路径
+		});
+		$("#submitMsg").click(function(){
+			var content=$("#addComment-text").val().trim();
+			if(content==""){
+				alert("评论内容不能为空");
+				return;
+			}
+			var formdata=new FormData();
+			//可以通过append()方法来追加数据
+			formdata.append("content",content);
+			$.ajax({
+				url: /*[[@{/message/addMessage}]]*/,
+				type: 'post',
+				//datatype: 'json',
+				data: formdata,
+				contentType: false,
+				processData : false,
+				cache: false,
+				//contentType: 'application/json',
+				//data: JSON.stringify({"content" : content}),
+				async:false,
+				success: function(data){
+					var key="success";
+					if(data[key]){
+						alert(data[key]);
+						window.location.href=/*[[@{/message/list}]]*/
+						//刷新div
+						//$("#content").load(window.location.href + (" .comment"));
+					}else{
+						alert("留言提交失败。。。");
+					}
+				},
+				error: function(data){
+					alert("连接失败拉。。。。:(");
+				}
+			})
+		});
+
+	});
+	function ajaxMessageDelete(id){
+        if(confirm('确定删除此条评论吗？？')){
+    		$.ajax({
+    			url: [[@{/message/remove/}]]+id,
+    			type: 'DELETE',
+    			datatype: 'json',
+    			contentType: 'application/json',
+    			data: JSON.stringify({"commentId" : id}),
+    			async:false,
+    			success: function(data){
+    				window.location.href=/*[[@{/message/list}]]*/
+    			},
+    			error: function(data){
+    				alert("连接失败拉。。。。:(");
+    			}
+    		})
+        }
+        return false;
+	}
+	//查看结果
+	
+	function replace_em(str){
+		str = str.replace(/\</g,'&lt;');//将所有< 替换为&lt;
+		str = str.replace(/\>/g,'&gt;');//将所有> 替换为&gt;
+		str = str.replace(/\n/g,'<br/>');//将所有\n替换成<br/>
+		str = str.replace(/\[em_([0-9]*)\]/g,'<img src=[[@{/pics/arclist/$1.gif}]] border="0" />');
+		return str;
+	}
+	
+	</script>	
+</head>
+<body>
+	 <div id="content" style="height:350px;overflow-y:auto;width:90%;margin:0 auto;">
+	 		<div class="comment" th:each="message,msgStat:${messageList}" th:id="showMsg+${msgStat.index+1}"> 			
+	 			<img th:src="${message.user.userPic} ? @{/security/getPic/{userNo}(userNo=${message.user.userNo})} : @{/pics/cat.jpg}" />
+	 			<span th:text="${message.user.userName}"></span>
+	 			<div>
+	 				<div class="comment-text" th:id="msg-content+${msgStat.index+1}">[[${message.content}]]</div>
+	 				<div class="form-group">
+	 					<button class="btn btn-dark btn-sm" th:if="${message.user.userNo eq session.user.userNo || session.user.role.roleId eq 1}" th:onclick="'javascript:ajaxMessageDelete('+${message.msgId}+')'">删除</button>
+	 					<span th:text="${#strings.substring(message.createTime,0,16)}"></span>
+	 					<span th:text="${message.user.role.roleName}"></span>
+	 				</div>
+	 				<div style="clear: both;"></div>	 				
+	 			</div>
+	 		</div>
+	 </div>
+     <div id="addComment">
+        <textarea id="addComment-text"></textarea>
+		<button class="btn btn-primary btn-sm" id="emo">表情</button>
+        <button class="btn btn-success btn-sm" id="submitMsg" style="width: 100px;float: right;">发送</button>
+        <div style="clear: both;"></div>
+     </div>   
+</body>
+
+
+ 
+</html>
+
+
+
+
+  
+  
